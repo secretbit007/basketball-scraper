@@ -88,8 +88,6 @@ def get_data():
 
     return {'error': 'Something went wrong!'}
 
-EXCEL_PATH = '/home/BasketballDatabase/mysite/scraper_overview.xlsx'
-
 # HTML Template with DataTables and upload form
 template = """
 <!doctype html>
@@ -171,19 +169,19 @@ template = """
 
 @app.route('/dashboard')
 def table():
-    df = pd.read_excel(EXCEL_PATH)
+    df = pd.read_excel(os.path.dirname(os.path.realpath(__file__)) + '/scraper_overview.xlsx')
     return render_template_string(template, df=df)
 
 @app.route('/upload', methods=['POST'])
 def upload():
    file = request.files['file']
    if file and file.filename.endswith('.xlsx'):
-       file.save(EXCEL_PATH)
+       file.save(os.path.dirname(os.path.realpath(__file__))+ '/scraper_overview.xlsx')
    return redirect(url_for('table'))
 
 @app.route('/pdf/<filename>')
 def serve_pdf(filename):
-    return send_from_directory('/home/BasketballDatabase/mysite', filename)
+    return send_from_directory(os.path.dirname(os.path.realpath(__file__)), filename)
 
 @app.route('/pdf')
 def show_pdf():

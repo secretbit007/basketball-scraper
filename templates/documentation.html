@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Scrapers Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .scraper-list {
+            margin-left: 20px;
+        }
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .parameter-table th, .parameter-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .parameter-table th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Basketball Scrapers Documentation</h1>
+    <p>This documentation provides an overview of the basketball scrapers API and its parameters.</p>
+
+    <h2>Base URL</h2>
+    <p>The base URL for the API is:</p>
+    <code>https://basketballdatabase.eu.pythonanywhere.com</code>
+
+    <h2>API Parameters</h2>
+    <table class="parameter-table">
+        <thead>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Possible Values</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>f</code></td>
+                <td>Target function to call.</td>
+                <td><code>schedule</code>, <code>game</code>, <code>player</code></td>
+            </tr>
+            <tr>
+                <td><code>lpar</code></td>
+                <td>League parameter. Specifies the league for which data is requested.</td>
+                <td>See list of scrapers below.</td>
+            </tr>
+            <tr>
+                <td><code>spar</code></td>
+                <td>Season parameter. Specifies the season for which data is requested.</td>
+                <td>Depends on the league and season.</td>
+            </tr>
+            <tr>
+                <td><code>season</code></td>
+                <td>Points to a specific season for matches.</td>
+                <td>Depends on the league and season.</td>
+            </tr>
+            <tr>
+                <td><code>source</code></td>
+                <td>Points to the match source.</td>
+                <td>e.g., <code>FIBA_Livesco</code></td>
+            </tr>
+            <tr>
+                <td><code>extid</code></td>
+                <td>Points to a specific game or player.</td>
+                <td>Depends on the league and data.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>List of Scrapers by League Parameter (<code>lpar</code>)</h2>
+    <div class="scraper-list">
+        <ul>
+            <li><strong>FIBA_Livesco</strong>: Scraper for FIBA Livescore data.</li>
+            <li><strong>E</strong>: Scraper for Euroleague.</li>
+            <li><strong>U</strong>: Scraper for Eurocup.</li>
+            <li><strong>NBA</strong>: Scraper for NBA.</li>
+            <li><strong>G</strong>: Scraper for NBA G-League.</li>
+            <li><strong>NCAA</strong>: Scraper for NCAA.</li>
+            <li><strong>SerieA1</strong>: Scraper for Italy Serie A1.</li>
+            <li><strong>SerieA2</strong>: Scraper for Italy Serie A2.</li>
+            <li><strong>SerieB</strong>: Scraper for Italy Serie B.</li>
+            <li><strong>LEBORO</strong>: Scraper for LEB Oro (Spain).</li>
+            <li><strong>LEBPLATA</strong>: Scraper for LEB Plata (Spain).</li>
+            <li><strong>KLS</strong>: Scraper for Kosovo Basketball Superleague.</li>
+            <li><strong>NAIA</strong>: Scraper for NAIA (National Association of Intercollegiate Athletics).</li>
+            <li><strong>CANCIS</strong>: Scraper for Canadian Collegiate Basketball.</li>
+            <li><strong>VTB</strong>: Scraper for VTB United League.</li>
+            <li><strong>KZS</strong>: Scraper for Kazakhstan Basketball League.</li>
+            <li><strong>FUBB</strong>: Scraper for FIBA leagues.</li>
+            <li><strong>BIH</strong>: Scraper for Bosnia and Herzegovina Basketball League.</li>
+            <li><strong>NBL</strong>: Scraper for NBL (Australia/New Zealand).</li>
+            <li><strong>ESAKE</strong>: Scraper for Greek A1 Basketball League.</li>
+            <li><strong>KOS</strong>: Scraper for Kosovo Basketball League.</li>
+            <li><strong>CBFFE</strong>: Scraper for CBFFE (Central American Basketball Federation).</li>
+            <li><strong>SBF</strong>: Scraper for SBF (Swiss Basketball League).</li>
+            <li><strong>ECBBL</strong>: Scraper for ECBBL (European Central Basketball League).</li>
+            <li><strong>BNXT</strong>: Scraper for BNXT League (Belgium-Netherlands).</li>
+            <li><strong>FPB</strong>: Scraper for FPB (Portuguese Basketball Federation).</li>
+            <li><strong>NCAAD3</strong>: Scraper for NCAA Division III.</li>
+            <li><strong>NCAAD2</strong>: Scraper for NCAA Division II.</li>
+        </ul>
+    </div>
+
+    <h2>Example API Request</h2>
+    <p>To retrieve the schedule for the NBA league for the 2022-2023 season:</p>
+    <code>https://basketballdatabase.eu.pythonanywhere.com?f=schedule&lpar=NBA&spar=2022-2023</code>
+
+    <h2>Notes</h2>
+    <ul>
+        <li>Ensure that the <code>lpar</code> value matches the league you are querying.</li>
+        <li>The <code>spar</code> and <code>season</code> parameters must align with the league's available seasons.</li>
+        <li>Use the <code>extid</code> parameter to fetch specific game or player details.</li>
+    </ul>
+</body>
+</html>

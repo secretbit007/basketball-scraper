@@ -11,6 +11,6 @@ from slugify import slugify
 from math import ceil
 from urllib.parse import urlparse, parse_qs, unquote
 from datetime import date, timedelta, datetime
-from flask import Flask, request, render_template_string, redirect, url_for, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for, send_from_directory
 from bs4 import BeautifulSoup, Tag
 from concurrent.futures import ThreadPoolExecutor

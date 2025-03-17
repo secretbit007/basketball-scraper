@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+ <head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Scraper Overview</title>
+   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+   <style>
+     body { font-family: Arial, sans-serif; margin: 20px; }
+     .upload-form { margin-bottom: 20px; }
+     .filter-select { width: 100%; box-sizing: border-box; } /* Style for filter dropdowns */
+   </style>
+ </head>
+ <body>
+   <h1>Scraper Overview Table</h1>
+
+   <div class="upload-form">
+     <form action="/upload" method="POST" enctype="multipart/form-data">
+       <label>Upload updated Excel:</label>
+       <input type="file" name="file" accept=".xlsx" required>
+       <button type="submit">Upload</button>
+     </form>
+   </div>
+
+   <table id="scraperTable" class="display">
+     <thead>
+       <tr>
+         {% for col in df.columns %}
+           <th>{{ col }}</th>
+         {% endfor %}
+       </tr>
+       <tr class="filters"> <!-- Row for filter dropdowns -->
+         {% for col in df.columns %}
+           <th>
+             <select class="filter-select" data-column="{{ loop.index0 }}">
+               <option value="">All</option> <!-- Default option to show all -->
+               {% for value in df[col].unique() %}
+                 <option value="{{ value }}">{{ value }}</option>
+               {% endfor %}
+             </select>
+           </th>
+         {% endfor %}
+       </tr>
+     </thead>
+     <tbody>
+       {% for row in df.itertuples(index=False) %}
+       <tr>
+         {% for value in row %}
+           <td>{{ value }}</td>
+         {% endfor %}
+       </tr>
+       {% endfor %}
+     </tbody>
+   </table>
+
+   <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+   <script>
+     $(document).ready(function() {
+       var table = $('#scraperTable').DataTable({
+         paging: true,
+         searching: true,
+         ordering: true
+       });
+
+       // Add filter dropdowns to the header
+       $('.filter-select').on('change', function() {
+         var columnIndex = $(this).data('column'); // Get column index
+         var filterValue = this.value; // Get selected value
+         table.column(columnIndex).search(filterValue).draw(); // Apply filter
+       });
+     });
+   </script>
+ </body>
+</html>

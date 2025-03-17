@@ -18,9 +18,6 @@
             padding: 2px 5px;
             border-radius: 3px;
         }
-        .scraper-list {
-            margin-left: 20px;
-        }
         .parameter-table {
             width: 100%;
             border-collapse: collapse;
@@ -33,6 +30,13 @@
         }
         .parameter-table th {
             background-color: #f4f4f4;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -62,7 +66,7 @@
             <tr>
                 <td><code>lpar</code></td>
                 <td>League parameter. Specifies the league for which data is requested.</td>
-                <td>See list of scrapers below.</td>
+                <td>See the <a href="https://basketballdatabase.eu.pythonanywhere.com/dashboard" target="_blank">dashboard</a> for a full list of scrapers.</td>
             </tr>
             <tr>
                 <td><code>spar</code></td>
@@ -87,43 +91,15 @@
         </tbody>
     </table>
 
-    <h2>List of Scrapers by League Parameter (<code>lpar</code>)</h2>
-    <div class="scraper-list">
-        <ul>
-            <li><strong>FIBA_Livesco</strong>: Scraper for FIBA Livescore data.</li>
-            <li><strong>E</strong>: Scraper for Euroleague.</li>
-            <li><strong>U</strong>: Scraper for Eurocup.</li>
-            <li><strong>NBA</strong>: Scraper for NBA.</li>
-            <li><strong>G</strong>: Scraper for NBA G-League.</li>
-            <li><strong>NCAA</strong>: Scraper for NCAA.</li>
-            <li><strong>SerieA1</strong>: Scraper for Italy Serie A1.</li>
-            <li><strong>SerieA2</strong>: Scraper for Italy Serie A2.</li>
-            <li><strong>SerieB</strong>: Scraper for Italy Serie B.</li>
-            <li><strong>LEBORO</strong>: Scraper for LEB Oro (Spain).</li>
-            <li><strong>LEBPLATA</strong>: Scraper for LEB Plata (Spain).</li>
-            <li><strong>KLS</strong>: Scraper for Kosovo Basketball Superleague.</li>
-            <li><strong>NAIA</strong>: Scraper for NAIA (National Association of Intercollegiate Athletics).</li>
-            <li><strong>CANCIS</strong>: Scraper for Canadian Collegiate Basketball.</li>
-            <li><strong>VTB</strong>: Scraper for VTB United League.</li>
-            <li><strong>KZS</strong>: Scraper for Kazakhstan Basketball League.</li>
-            <li><strong>FUBB</strong>: Scraper for FIBA leagues.</li>
-            <li><strong>BIH</strong>: Scraper for Bosnia and Herzegovina Basketball League.</li>
-            <li><strong>NBL</strong>: Scraper for NBL (Australia/New Zealand).</li>
-            <li><strong>ESAKE</strong>: Scraper for Greek A1 Basketball League.</li>
-            <li><strong>KOS</strong>: Scraper for Kosovo Basketball League.</li>
-            <li><strong>CBFFE</strong>: Scraper for CBFFE (Central American Basketball Federation).</li>
-            <li><strong>SBF</strong>: Scraper for SBF (Swiss Basketball League).</li>
-            <li><strong>ECBBL</strong>: Scraper for ECBBL (European Central Basketball League).</li>
-            <li><strong>BNXT</strong>: Scraper for BNXT League (Belgium-Netherlands).</li>
-            <li><strong>FPB</strong>: Scraper for FPB (Portuguese Basketball Federation).</li>
-            <li><strong>NCAAD3</strong>: Scraper for NCAA Division III.</li>
-            <li><strong>NCAAD2</strong>: Scraper for NCAA Division II.</li>
-        </ul>
-    </div>
+    <h2>Scrapers List</h2>
+    <p>For a full list of available scrapers, visit the <a href="https://basketballdatabase.eu.pythonanywhere.com/dashboard" target="_blank">dashboard</a>.</p>
 
     <h2>Example API Request</h2>
     <p>To retrieve the schedule for the NBA league for the 2023 season:</p>
     <code>https://basketballdatabase.eu.pythonanywhere.com?f=schedule&lpar=NBA&spar=2023</code>
+
+    <h2>Testing Pages</h2>
+    <p>For reference and testing, visit the <a href="https://basketballdatabase.eu.pythonanywhere.com/pdf" target="_blank">testing pages</a>.</p>
 
     <h2>Notes</h2>
     <ul>

@@ -91,6 +91,7 @@ def get_data():
 @app.route('/dashboard')
 def table():
     df = pd.read_excel(os.path.dirname(os.path.realpath(__file__)) + '/scraper_overview.xlsx')
+
     return render_template('dashboard.html', df=df)
 
 @app.route('/upload', methods=['POST'])

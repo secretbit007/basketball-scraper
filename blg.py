@@ -202,7 +202,7 @@ def get_player(extid):
 
 def func_blg(args):
     if args['f'] == 'schedule':
-        games = get_schedule(args['lpar'])
+        games = get_schedule(args['lpar'], args['spar'])
         
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

@@ -1,23 +1,15 @@
 from library import *
 
-def get_schedule(lpar):
+def get_schedule(lpar, spar):
     games = []
     
-    if lpar == 'B1':
-        comp_id = 36378
-    else:
-        comp_id = 36379
-    
-    url_dates = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{comp_id}/schedule?&iurl=https://www.bleague.global/schedule?detail&_ht=1&_mf=1'
+    url_dates = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{spar}/schedule'
     
     resp_dates = requests.get(url_dates)
     dates = re.findall(r"SelectedDates\['([\d-]+)'\] = 1;", resp_dates.json()['html'])
     
     for date in dates:
-        if lpar == 'B1':
-            url = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{comp_id}?phaseName=B1+Regular+Season&poolNumber=-1&matchType=REGULAR&dateFilter={date}&&iurl=https%3A%2F%2Fwww.bleague.global%2Fschedule%3Fdetail&_ht=1&_mf=1'
-        else:
-            url = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{comp_id}?phaseName=B2+Regular+Season&poolNumber=-1&matchType=REGULAR&dateFilter={date}&&iurl=https%3A%2F%2Fwww.bleague.global%2Fschedule%3Fdetail&_ht=1&_mf=1'
+        url = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{spar}?&poolNumber=-1&matchType=REGULAR&dateFilter={date}&'
         
         resp = requests.get(url)
         html = resp.json()['html']

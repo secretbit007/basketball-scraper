@@ -27,6 +27,7 @@ def get_data():
     args = {}
     args['f'] = request.args.get('f')
     args['lpar'] = request.args.get('lpar')
+    args['spar'] = request.args.get('spar')
     args['source'] = request.args.get('source')
     args['season'] = request.args.get('season')
     args['extid'] = request.args.get('extid')

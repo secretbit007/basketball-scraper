@@ -3,13 +3,13 @@ from library import *
 def get_schedule(lpar, spar):
     games = []
     
-    url_dates = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{spar}/schedule'
+    url_dates = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{spar}/schedule?_ht=1&_mf=1'
     
     resp_dates = requests.get(url_dates)
     dates = re.findall(r"SelectedDates\['([\d-]+)'\] = 1;", resp_dates.json()['html'])
     
     for date in dates:
-        url = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{spar}?&poolNumber=-1&matchType=REGULAR&dateFilter={date}&'
+        url = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{spar}?poolNumber=-1&matchType=REGULAR&dateFilter={date}&'
         
         resp = requests.get(url)
         html = resp.json()['html']

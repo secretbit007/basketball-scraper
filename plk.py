@@ -66,10 +66,6 @@ def get_schedule(lpar, spar, match_type):
                 game['type'] = 'Main Round'
             elif match_type == 'pof':
                 game['type'] = 'Play-off'
-            elif match_type == 'mc':
-                game['type'] = "Men's Cup"
-            elif match_type == 'msc':
-                game['type'] = "Men's Super Cup"
 
             game_url = list(match_card.children)[-1].get('href')
             game['extid'] = game_url.split('/')[-2] + '_' + game_url.split('/')[-1] + '_' + match_type
@@ -95,45 +91,40 @@ def get_boxscore(extid):
         info['extid'] = extid
         info['source'] = url
 
-        if game_type == 'mc':
-            info['type'] = "Men's Cup"
-        elif game_type == 'main':
+        if game_type == 'main':
             info['type'] = 'Main Round'
-        elif game_type == 'msc':
-            info['type'] = "Men's Super Cup"
         elif game_type == 'pof':
             info['type'] == "Play-off"
 
         match_time = main.find('span', class_='text-white/80').text
         info['playDate'] = datetime.strptime(match_time, '%d.%m.%Y / %H:%M').strftime('%Y-%m-%d')
 
-        container = main.find('div', class_='container')
-        teams = list(list(container.children)[0].children)
+        container = main.find('div', class_='container', recursive=False)
+        tables = container.find('div').find_all('div', recursive=False)
 
         # Home
-        # home_elem = teams[0]
-        # home_name = home_elem.find('h2').text
+        home_elem = tables[0]
+        home_link = home_elem.find('a')
+        home_name = home_elem.find('h2').text
 
-        # info['homeTeam'] = {
-        #     'name': home_name
-        # }
+        info['homeTeam'] = {
+            'name': home_name
+        }
 
-        # print(info)
+        print(info)
 
         return info
+    
+get_boxscore('159539_tauron-gtk-gliwice-vs-krajowa-grupa-spozywcza-arka-gdynia_main')
 
 def func_plk(args):
     if args['f'] == 'schedule':
         games = []
         main = get_schedule(args['lpar'], args['spar'], 'main')
         pof = get_schedule(args['lpar'], args['spar'], 'pof')
-        mc = get_schedule(args['lpar'], args['spar'], 'mc')
-        msc = get_schedule(args['lpar'], args['spar'], 'msc')
 
         games.extend(main)
         games.extend(pof)
-        games.extend(mc)
-        games.extend(msc)
         
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

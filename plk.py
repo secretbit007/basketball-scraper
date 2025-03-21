@@ -102,20 +102,158 @@ def get_boxscore(extid):
         container = main.find('div', class_='container', recursive=False)
         tables = container.find('div').find_all('div', recursive=False)
 
+        scores = main.find('h1', recursive=False).find('div').find_all('div', recursive=False)[-1].find_all('div')
+
         # Home
         home_elem = tables[0]
-        home_link = home_elem.find('a')
+        home_link = home_elem.find('a').get('href')
         home_name = home_elem.find('h2').text
+        home_extid = home_link.split('/')[-2] + '_' + home_link.split('/')[-1]
 
         info['homeTeam'] = {
+            'extid': home_extid,
             'name': home_name
         }
+        info['homeScores'] = {
+            'QT1': int(scores[0].find_all('span')[0].text.strip()),
+            'QT2': int(scores[1].find_all('span')[0].text.strip()),
+            'QT3': int(scores[2].find_all('span')[0].text.strip()),
+            'QT4': int(scores[3].find_all('span')[0].text.strip()),
+            'final': int(main.find('h1', recursive=False).find('div').find_all('div', recursive=False)[1].find_all('div', recursive=False)[0].find('span', recursive=False).text.strip())
+        }
+        info['homeScores']['extra'] = info['homeScores']['final'] - info['homeScores']['QT1'] - info['homeScores']['QT2'] - info['homeScores']['QT3'] - info['homeScores']['QT4']
 
-        print(info)
+        # Away
+        away_elem = tables[1]
+        away_link = away_elem.find('a').get('href')
+        away_name = away_elem.find('h2').text
+        away_extid = away_link.split('/')[-2] + '_' + away_link.split('/')[-1]
+
+        info['visitorTeam'] = {
+            'extid': away_extid,
+            'name': away_name
+        }
+        info['visitorScores'] = {
+            'QT1': int(scores[0].find_all('span')[1].text.strip()),
+            'QT2': int(scores[1].find_all('span')[1].text.strip()),
+            'QT3': int(scores[2].find_all('span')[1].text.strip()),
+            'QT4': int(scores[3].find_all('span')[1].text.strip()),
+            'final': int(main.find('h1', recursive=False).find('div').find_all('div', recursive=False)[1].find_all('div', recursive=False)[2].find('span', recursive=False).text.strip())
+        }
+        info['visitorScores']['extra'] = info['visitorScores']['final'] - info['visitorScores']['QT1'] - info['visitorScores']['QT2'] - info['visitorScores']['QT3'] - info['visitorScores']['QT4']
+
+        # Stats
+        info['stats'] = []
+        scripts = soup.find_all('script')
+        game = None
+
+        for script in scripts:
+            if 'self.__next_f.push([1,"d:' in script.text:
+                data = script.text.replace('self.__next_f.push([1,"d:', '').strip()[0:-5].replace('\\"', '"')
+                
+                game = json.loads(data)[3]['children'][0][3]['gameData']['game']
+                break
+
+        if game:
+            # Home
+            home_data = game['homeTeam']
+            home_players = home_data['players']
+
+            for player in home_players:
+                stat = {}
+                stat['team'] = info['homeTeam']['extid']
+
+                stat['player_name'] = f"{player['firstName']} {player['lastName']}"
+                stat['player_firstname'] = player['firstName']
+                stat['player_lastname'] = player['lastName']
+                stat['player_extid'] = f"{player['id']}_{player['slug']}"
+
+                item = {}
+                home_player_stats = home_data['gameStatistics']['playersStatistics']
+
+                for player_stat in home_player_stats:
+                    if player_stat['playerId'] == player['id']:
+                        item['2pts Attempts'] = player_stat['attemptTwoPts']
+                        item['2pts Made'] = player_stat['madeTwoPts']
+                        item['3pts Attempts'] = player_stat['attemptThreePts']
+                        item['3pts Made'] = player_stat['madeThreePts']
+                        item['Assists'] = player_stat['assists']
+                        item['Block Shots'] = player_stat['blocks']
+                        item['Defensive rebounds'] = player_stat['reboundsDefensive']
+                        item['Offensive rebounds'] = player_stat['reboundsOffensive']
+                        item['Total rebounds'] = player_stat['reboundsTotal']
+                        item['FT Attempts'] = player_stat['attemptFreeThrowPts']
+                        item['FT Made'] = player_stat['madeFreeThrowPts']
+                        item['Minutes played'] = ceil(player_stat['playTimeSeconds'] / 60)
+                        item['Personal fouls'] = player_stat['foulsPersonal']
+                        item['Points'] = player_stat['points']
+                        item['Steals'] = player_stat['steals']
+                        item['Turnovers'] = player_stat['turnovers']
+
+                        break
+
+                stat['items'] = item
+                info['stats'].append(stat)
+
+            stat = {}
+            stat['team'] = info['homeTeam']['extid']
+            stat['player_extid'] = 'team'
+            stat['player_firstname'] = ''
+            stat['player_lastname'] = '- TEAM -'
+            stat['player_name'] = '- TEAM -'
+
+            info['stats'].append(stat)
+
+            # Away
+            away_data = game['guestTeam']
+            away_players = away_data['players']
+
+            for player in away_players:
+                stat = {}
+                stat['team'] = info['visitorTeam']['extid']
+
+                stat['player_name'] = f"{player['firstName']} {player['lastName']}"
+                stat['player_firstname'] = player['firstName']
+                stat['player_lastname'] = player['lastName']
+                stat['player_extid'] = f"{player['id']}_{player['slug']}"
+
+                item = {}
+                away_player_stats = away_data['gameStatistics']['playersStatistics']
+
+                for player_stat in away_player_stats:
+                    if player_stat['playerId'] == player['id']:
+                        item['2pts Attempts'] = player_stat['attemptTwoPts']
+                        item['2pts Made'] = player_stat['madeTwoPts']
+                        item['3pts Attempts'] = player_stat['attemptThreePts']
+                        item['3pts Made'] = player_stat['madeThreePts']
+                        item['Assists'] = player_stat['assists']
+                        item['Block Shots'] = player_stat['blocks']
+                        item['Defensive rebounds'] = player_stat['reboundsDefensive']
+                        item['Offensive rebounds'] = player_stat['reboundsOffensive']
+                        item['Total rebounds'] = player_stat['reboundsTotal']
+                        item['FT Attempts'] = player_stat['attemptFreeThrowPts']
+                        item['FT Made'] = player_stat['madeFreeThrowPts']
+                        item['Minutes played'] = ceil(player_stat['playTimeSeconds'] / 60)
+                        item['Personal fouls'] = player_stat['foulsPersonal']
+                        item['Points'] = player_stat['points']
+                        item['Steals'] = player_stat['steals']
+                        item['Turnovers'] = player_stat['turnovers']
+
+                        break
+
+                stat['items'] = item
+                info['stats'].append(stat)
+
+            stat = {}
+            stat['team'] = info['visitorTeam']['extid']
+            stat['player_extid'] = 'team'
+            stat['player_firstname'] = ''
+            stat['player_lastname'] = '- TEAM -'
+            stat['player_name'] = '- TEAM -'
+
+            info['stats'].append(stat)
 
         return info
-    
-get_boxscore('159539_tauron-gtk-gliwice-vs-krajowa-grupa-spozywcza-arka-gdynia_main')
 
 def func_plk(args):
     if args['f'] == 'schedule':
@@ -128,5 +266,5 @@ def func_plk(args):
         
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':
-        return get_boxscore(args['extid'], args['spar'])
+        return get_boxscore(args['extid'])
     

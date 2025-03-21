@@ -54,13 +54,8 @@ def get_schedule(lpar, spar):
             
     return games
 
-def get_boxscore(extid, lpar):
-    if lpar == 'B1':
-        comp_id = 36378
-    else:
-        comp_id = 36379
-        
-    url = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{comp_id}/match/{extid}/boxscore?&iurl=https%3A%2F%2Fwww.bleague.global%2Fschedule%3Fdetail&_ht=1&_mf=1'
+def get_boxscore(extid, spar):
+    url = f'https://hosted.dcd.shared.geniussports.com/embednf/JBBLT/en/competition/{spar}/match/{extid}/boxscore?_ht=1&_mf=1'
     resp = requests.get(url)
     html = resp.json()['html']
     soup = BeautifulSoup(html, 'html.parser')
@@ -69,7 +64,7 @@ def get_boxscore(extid, lpar):
     info['extid'] = extid
     info['playDate'] = datetime.strptime(soup.find('div', class_='match-time').span.text, '%b %d, %Y, %I:%M %p').strftime('%Y-%m-%d')
         
-    info['source'] = f'https://www.bleague.global/schedule?detail&WHurl=/competition/{comp_id}/match/{extid}/boxscore?'
+    info['source'] = f'https://www.bleague.global/schedule?detail&WHurl=/competition/{spar}/match/{extid}/boxscore?'
     info['type'] = 'Regular'
     
     info['homeTeam'] = {
@@ -206,6 +201,6 @@ def func_blg(args):
         
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':
-        return get_boxscore(args['extid'], args['lpar'])
+        return get_boxscore(args['extid'], args['spar'])
     elif args['f'] == 'player':
         return get_player(args['extid'])

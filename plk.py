@@ -67,9 +67,9 @@ def get_schedule(lpar, spar, match_type):
             elif match_type == 'pof':
                 game['type'] = 'Play-off'
             elif match_type == 'mc':
-                game['type'] == "Men's Cup"
+                game['type'] = "Men's Cup"
             elif match_type == 'msc':
-                game['type'] == "Men's Super Cup"
+                game['type'] = "Men's Super Cup"
 
             game_url = list(match_card.children)[-1].get('href')
             game['extid'] = game_url.split('/')[-2] + '_' + game_url.split('/')[-1] + '_' + match_type

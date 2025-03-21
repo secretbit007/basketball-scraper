@@ -19,6 +19,7 @@ from bnxt import func_bnxt
 from blg import func_blg
 from fpb import func_fpb
 from ncaa import func_ncaa
+from plk import func_plk
 
 app = Flask(__name__)
 
@@ -86,6 +87,8 @@ def get_data():
         return func_ncaa(args, 'D-III')
     elif args['lpar'] == 'NCAAD2':
         return func_ncaa(args, 'D-II')
+    elif args['lpar'] == 'PLK':
+        return func_plk(args)
 
     return {'error': 'Something went wrong!'}
 

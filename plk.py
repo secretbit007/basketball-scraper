@@ -254,6 +254,42 @@ def get_boxscore(extid):
             info['stats'].append(stat)
 
         return info
+    
+def get_player(extid, spar):
+    player_id = extid.split('_')[0]
+    player_slug = extid.split('_')[1]
+
+    url = f'https://plk.pl/archiwum/{spar}/zawodnicy/{player_id}/{player_slug}'
+    resp = requests.get(url)
+
+    if resp.status_code == 200:
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        scripts = soup.find_all('script')
+
+        player = None
+
+        for script in scripts:
+            if 'self.__next_f.push([1,"9:' in script.text:
+                data = script.text.replace('self.__next_f.push([1,"9:', '').strip()[0:-5].replace('\\"', '"')
+                
+                player = json.loads(data)[3]['children'][0][3]['player']
+                break
+
+        if player:
+            info = {}
+            info['name'] = f"{player['firstName']} {player['lastName']}"
+            info['firstname'] = player['firstName']
+            info['lastname'] = player['lastName']
+            info['extid'] = extid
+            info['source'] = url
+            info['shirtNumber'] = player['shirtNumber']
+            info['position'] = player['positions'][0]
+            info['team'] = player['team']['name']
+            info['dateOfBirth'] = player['birthDate']
+            info['height'] = player['height']
+            info['nationality'] = player['passport']
+
+            return info
 
 def func_plk(args):
     if args['f'] == 'schedule':
@@ -267,4 +303,6 @@ def func_plk(args):
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':
         return get_boxscore(args['extid'])
+    elif args['f'] == 'player':
+        return get_player(args['extid'], args['spar'])
     

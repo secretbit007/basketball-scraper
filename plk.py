@@ -115,12 +115,29 @@ def get_boxscore(extid):
             'name': home_name
         }
         info['homeScores'] = {
-            'QT1': int(scores[0].find_all('span')[0].text.strip()),
-            'QT2': int(scores[1].find_all('span')[0].text.strip()),
-            'QT3': int(scores[2].find_all('span')[0].text.strip()),
-            'QT4': int(scores[3].find_all('span')[0].text.strip()),
             'final': int(main.find('h1', recursive=False).find('div').find_all('div', recursive=False)[1].find_all('div', recursive=False)[0].find('span', recursive=False).text.strip())
         }
+
+        try:
+            info['QT1'] = int(scores[0].find_all('span')[0].text.strip())
+        except:
+            info['QT1'] = 0
+
+        try:
+            info['QT2'] = int(scores[1].find_all('span')[0].text.strip())
+        except:
+            info['QT2'] = 0
+
+        try:
+            info['QT3'] = int(scores[2].find_all('span')[0].text.strip())
+        except:
+            info['QT3'] = 0
+
+        try:
+            info['QT4'] = int(scores[3].find_all('span')[0].text.strip())
+        except:
+            info['QT4'] = 0
+
         info['homeScores']['extra'] = info['homeScores']['final'] - info['homeScores']['QT1'] - info['homeScores']['QT2'] - info['homeScores']['QT3'] - info['homeScores']['QT4']
 
         # Away
@@ -134,12 +151,28 @@ def get_boxscore(extid):
             'name': away_name
         }
         info['visitorScores'] = {
-            'QT1': int(scores[0].find_all('span')[1].text.strip()),
-            'QT2': int(scores[1].find_all('span')[1].text.strip()),
-            'QT3': int(scores[2].find_all('span')[1].text.strip()),
-            'QT4': int(scores[3].find_all('span')[1].text.strip()),
             'final': int(main.find('h1', recursive=False).find('div').find_all('div', recursive=False)[1].find_all('div', recursive=False)[2].find('span', recursive=False).text.strip())
         }
+
+        try:
+            info['QT1'] = int(scores[0].find_all('span')[1].text.strip())
+        except:
+            info['QT1'] = 0
+
+        try:
+            info['QT2'] = int(scores[1].find_all('span')[1].text.strip())
+        except:
+            info['QT2'] = 0
+
+        try:
+            info['QT3'] = int(scores[2].find_all('span')[1].text.strip())
+        except:
+            info['QT3'] = 0
+
+        try:
+            info['QT4'] = int(scores[3].find_all('span')[1].text.strip())
+        except:
+            info['QT4'] = 0
         info['visitorScores']['extra'] = info['visitorScores']['final'] - info['visitorScores']['QT1'] - info['visitorScores']['QT2'] - info['visitorScores']['QT3'] - info['visitorScores']['QT4']
 
         # Stats

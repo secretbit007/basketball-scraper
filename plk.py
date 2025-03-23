@@ -94,7 +94,7 @@ def get_boxscore(extid):
         if game_type == 'main':
             info['type'] = 'Main Round'
         elif game_type == 'pof':
-            info['type'] == "Play-off"
+            info['type'] = "Play-off"
 
         match_time = main.find('span', class_='text-white/80').text
         info['playDate'] = datetime.strptime(match_time, '%d.%m.%Y / %H:%M').strftime('%Y-%m-%d')

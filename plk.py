@@ -149,8 +149,7 @@ def get_boxscore(extid):
 
         for script in scripts:
             if 'self.__next_f.push([1,"d:' in script.text:
-                data = script.text.replace('self.__next_f.push([1,"d:', '').strip()[0:-5].replace('\\"', '"')
-                
+                data = script.text.replace('self.__next_f.push([1,"d:', '').strip()[0:-5].replace('\\"', '"').replace('\\\\"', "'")
                 game = json.loads(data)[3]['children'][0][3]['gameData']['game']
                 break
 

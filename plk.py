@@ -21,11 +21,14 @@ def get_schedule(lpar, spar):
 
                     for match_round in rounds:
                         queues = match_round['queues']
-                        
+
                         for queue in queues:
                             games = queue['games']
 
                             for game in games:
+                                if game['league']['id'] != 2:
+                                    continue
+                                
                                 info = {}
                                 info['round'] = game['round']['name']
                                 info['playDate'] = datetime.fromisoformat(game['date'].strip('Z')).strftime('%Y-%m-%d')

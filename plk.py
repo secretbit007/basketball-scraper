@@ -17,47 +17,50 @@ def get_schedule(lpar, spar):
                 schedules = json.loads(data)[3]['data']['schedule']
 
                 for schedule in schedules:
-                    queues = schedule['rounds'][0]['queues']
+                    rounds = schedule['rounds']
 
-                    for queue in queues:
-                        games = queue['games']
+                    for match_round in rounds:
+                        queues = match_round['queues']
+                        
+                        for queue in queues:
+                            games = queue['games']
 
-                        for game in games:
-                            info = {}
-                            info['round'] = game['round']['name']
-                            info['playDate'] = datetime.fromisoformat(game['date'].strip('Z')).strftime('%Y-%m-%d')
-                            
-                            home_team = game['homeTeam']
-                            info['homeTeam'] = {
-                                'extid': f"{home_team['id']}_{home_team['slug']}",
-                                'name': home_team['name']
-                            }
-
-                            visitor_team = game['guestTeam']
-                            info['visitorTeam'] = {
-                                'extid': f"{visitor_team['id']}_{visitor_team['slug']}",
-                                'name': visitor_team['name']
-                            }
-
-                            if game['isFinished']:
-                                info['state'] = 'Finished'
-
-                                info['homeScores'] = {
-                                    'final': game['resultHome']
+                            for game in games:
+                                info = {}
+                                info['round'] = game['round']['name']
+                                info['playDate'] = datetime.fromisoformat(game['date'].strip('Z')).strftime('%Y-%m-%d')
+                                
+                                home_team = game['homeTeam']
+                                info['homeTeam'] = {
+                                    'extid': f"{home_team['id']}_{home_team['slug']}",
+                                    'name': home_team['name']
                                 }
 
-                                info['visitorScores'] = {
-                                    'final': game['resultGuest']
+                                visitor_team = game['guestTeam']
+                                info['visitorTeam'] = {
+                                    'extid': f"{visitor_team['id']}_{visitor_team['slug']}",
+                                    'name': visitor_team['name']
                                 }
-                            else:
-                                info['state'] = 'Not Finished'
 
-                            info['competition'] = lpar
+                                if game['isFinished']:
+                                    info['state'] = 'Finished'
 
-                            info['extid'] = f"{game['id']}_{game['slug']}"
-                            info['source'] = f"https://plk.pl/mecz/{game['id']}/{game['slug']}"
+                                    info['homeScores'] = {
+                                        'final': game['resultHome']
+                                    }
 
-                            results.append(info)
+                                    info['visitorScores'] = {
+                                        'final': game['resultGuest']
+                                    }
+                                else:
+                                    info['state'] = 'Not Finished'
+
+                                info['competition'] = lpar
+
+                                info['extid'] = f"{game['id']}_{game['slug']}"
+                                info['source'] = f"https://plk.pl/mecz/{game['id']}/{game['slug']}"
+
+                                results.append(info)
 
                 break
             

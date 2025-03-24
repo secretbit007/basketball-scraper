@@ -25,7 +25,7 @@ def get_schedule(lpar, spar):
                         for game in games:
                             info = {}
                             info['round'] = game['round']['name']
-                            info['playDate'] = datetime.fromisoformat(game['date']).strftime('%Y-%m-%d')
+                            info['playDate'] = datetime.fromisoformat(game['date'].strip('Z')).strftime('%Y-%m-%d')
                             
                             home_team = game['homeTeam']
                             info['homeTeam'] = {
@@ -82,7 +82,7 @@ def get_boxscore(extid):
                 info = {}
                 info['extid'] = extid
                 info['source'] = url
-                info['playDate'] = datetime.fromisoformat(game['date']).strftime('%Y-%m-%d')
+                info['playDate'] = datetime.fromisoformat(game['date'].strip('Z')).strftime('%Y-%m-%d')
 
                 home_team = game['homeTeam']
                 info['homeTeam'] = {

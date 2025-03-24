@@ -217,7 +217,7 @@ def get_boxscore(extid):
                         item['Total rebounds'] = player_stat['reboundsTotal']
                         item['FT Attempts'] = player_stat['attemptFreeThrowPts']
                         item['FT Made'] = player_stat['madeFreeThrowPts']
-                        item['Minutes played'] = ceil(player_stat['playTimeSeconds'] / 60)
+                        item['Minutes played'] = round(player_stat['playTimeSeconds'] / 60)
                         item['Personal fouls'] = player_stat['foulsPersonal']
                         item['Points'] = player_stat['points']
                         item['Steals'] = player_stat['steals']
@@ -266,7 +266,7 @@ def get_boxscore(extid):
                         item['Total rebounds'] = player_stat['reboundsTotal']
                         item['FT Attempts'] = player_stat['attemptFreeThrowPts']
                         item['FT Made'] = player_stat['madeFreeThrowPts']
-                        item['Minutes played'] = ceil(player_stat['playTimeSeconds'] / 60)
+                        item['Minutes played'] = round(player_stat['playTimeSeconds'] / 60)
                         item['Personal fouls'] = player_stat['foulsPersonal']
                         item['Points'] = player_stat['points']
                         item['Steals'] = player_stat['steals']

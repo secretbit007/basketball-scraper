@@ -98,7 +98,7 @@ def get_boxscore(extid):
 
                 visitor_team = game['guestTeam']
                 info['visitorTeam'] = {
-                    'extid': f"{visitor_team['id']}_{game['slug'].split('-vs-')[0]}",
+                    'extid': f"{visitor_team['id']}_{game['slug'].split('-vs-')[1]}",
                     'name': visitor_team['name']
                 }
 

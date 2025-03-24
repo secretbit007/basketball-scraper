@@ -1,92 +1,95 @@
 from library import *
 
+def get_schedule(season_alias):
+    results = []
+    feed = feedparser.parse(f'https://en.usports.ca/sports/mbkb/{season_alias}/schedule?print=rss')
+    entries = feed.entries
+    
+    date_list = []
+
+    for entry in entries:
+        date_str = entry['updated'].split('T')[0]
+        date_list.append(date_str)
+
+    headers = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
+    }
+    response = requests.get(f'https://en.usports.ca/sports/mbkb/{season_alias}/schedule', headers=headers)
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        items = soup.find_all('tr', class_='event-row')
+        index = 0
+        for item in items:
+            cells = item.find_all('td')
+            if len(cells) == 7:
+                game = {}
+                game['competition'] = "Men's Basketball"
+                game['playDate'] = date_list[index]
+                game['round'] = ''
+                game['state'] = 'confirmed'
+                game['extid'] = ''
+                game['source'] = ''
+                
+                links = cells[6].find_all('a')
+
+                for link in links:
+                    if link.text.strip() == 'Box Score':
+                        game['state'] = 'result'
+                        game['source'] = 'https://en.usports.ca' + link['href']
+
+                        if season_alias[-1] == 'p':
+                            game['extid'] = f"p-{link['href'].split('/')[-1].replace('.xml', '')}"
+                        elif season_alias[-1] == 'c':
+                            game['extid'] = f"c-{link['href'].split('/')[-1].replace('.xml', '')}"
+                        else:
+                            game['extid'] = f"o-{link['href'].split('/')[-1].replace('.xml', '')}"
+                        break
+
+                game['visitorTeam'] = {
+                    'extid': cells[1].find('div', class_='team-logo')['data-teamid'],
+                    'name': cells[1].find(class_='team-name').text.strip()
+                }
+
+                game['homeTeam'] = {
+                    'extid': cells[3].find('div', class_='team-logo')['data-teamid'],
+                    'name': cells[3].find(class_='team-name').text.strip()
+                }
+
+                game['type'] = ''
+
+                notation = cells[1].find('span', class_='notation')
+                if notation:
+                    game['type'] = notation['title']
+
+                if game['state'] == 'result':
+                    game['visitorScores'] = {
+                        'final': cells[2].text.strip()
+                    }
+                    game['homeScores'] = {
+                        'final': cells[4].text.strip()
+                    }
+                    game['extid'] = f'{game["extid"]}-{game["type"]}'
+
+                results.append(game)
+                index += 1
+
+    return results
+
 def func_cancis(args):
     if args['f'] == 'schedule':
         games = []
 
-        def get_schedule(season_alias):
-            feed = feedparser.parse(f'https://en.usports.ca/sports/mbkb/{season_alias}/schedule?print=rss')
-            entries = feed.entries
-            
-            date_list = []
-
-            for entry in entries:
-                date_str = entry['updated'].split('T')[0]
-                date_list.append(date_str)
-
-            headers = {
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
-            }
-            response = requests.get(f'https://en.usports.ca/sports/mbkb/{season_alias}/schedule', headers=headers)
-
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                items = soup.find_all('tr', class_='event-row')
-                index = 0
-                for item in items:
-                    cells = item.find_all('td')
-                    if len(cells) == 7:
-                        game = {}
-                        game['competition'] = "Men's Basketball"
-                        game['playDate'] = date_list[index]
-                        game['round'] = ''
-                        game['state'] = 'confirmed'
-                        game['extid'] = ''
-                        game['source'] = ''
-                        
-                        links = cells[6].find_all('a')
-
-                        for link in links:
-                            if link.text.strip() == 'Box Score':
-                                game['state'] = 'result'
-                                game['source'] = 'https://en.usports.ca' + link['href']
-
-                                if season_alias[-1] == 'p':
-                                    game['extid'] = f"p-{link['href'].split('/')[-1].replace('.xml', '')}"
-                                elif season_alias[-1] == 'c':
-                                    game['extid'] = f"c-{link['href'].split('/')[-1].replace('.xml', '')}"
-                                else:
-                                    game['extid'] = f"o-{link['href'].split('/')[-1].replace('.xml', '')}"
-                                break
-
-                        game['visitorTeam'] = {
-                            'extid': cells[1].find('div', class_='team-logo')['data-teamid'],
-                            'name': cells[1].find(class_='team-name').text.strip()
-                        }
-
-                        game['homeTeam'] = {
-                            'extid': cells[3].find('div', class_='team-logo')['data-teamid'],
-                            'name': cells[3].find(class_='team-name').text.strip()
-                        }
-
-                        game['type'] = ''
-
-                        notation = cells[1].find('span', class_='notation')
-                        if notation:
-                            game['type'] = notation['title']
-
-                        if game['state'] == 'result':
-                            game['visitorScores'] = {
-                                'final': cells[2].text.strip()
-                            }
-                            game['homeScores'] = {
-                                'final': cells[4].text.strip()
-                            }
-                            game['extid'] = f'{game["extid"]}-{game["type"]}'
-
-                        games.append(game)
-                        index += 1
-
         args['season'] = request.args.get('season')
 
         season_alias = f'{args["season"]}-{str(int(args["season"]) + 1)[-2:]}'
-        get_schedule(season_alias)
+        games.extend(get_schedule(season_alias))
 
         season_alias = f'{args["season"]}-{str(int(args["season"]) + 1)[-2:]}p'
-        get_schedule(season_alias)
+        games.extend(get_schedule(season_alias))
 
         season_alias = f'{args["season"]}-{str(int(args["season"]) + 1)[-2:]}c'
-        get_schedule(season_alias)
+        games.extend(get_schedule(season_alias))
         
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

@@ -5,7 +5,7 @@ def func_cancis(args):
         games = []
 
         def get_schedule(season_alias):
-            feed = feedparser.parse(f'https://presto-en.usports.ca/sports/mbkb/{season_alias}/schedule?print=rss')
+            feed = feedparser.parse(f'https://en.usports.ca/sports/mbkb/{season_alias}/schedule?print=rss')
             entries = feed.entries
             
             date_list = []
@@ -17,7 +17,7 @@ def func_cancis(args):
             headers = {
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
             }
-            response = requests.get(f'https://presto-en.usports.ca/sports/mbkb/{season_alias}/schedule', headers=headers)
+            response = requests.get(f'https://en.usports.ca/sports/mbkb/{season_alias}/schedule', headers=headers)
 
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
@@ -39,7 +39,7 @@ def func_cancis(args):
                         for link in links:
                             if link.text.strip() == 'Box Score':
                                 game['state'] = 'result'
-                                game['source'] = 'https://presto-en.usports.ca' + link['href']
+                                game['source'] = 'https://en.usports.ca' + link['href']
 
                                 if season_alias[-1] == 'p':
                                     game['extid'] = f"p-{link['href'].split('/')[-1].replace('.xml', '')}"
@@ -103,7 +103,7 @@ def func_cancis(args):
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
         }
-        response = requests.get(f'https://presto-en.usports.ca/sports/mbkb/{season_alias}/boxscores/{args["extid"].split("-")[1]}.xml?view=boxscore', headers=headers)
+        response = requests.get(f'https://en.usports.ca/sports/mbkb/{season_alias}/boxscores/{args["extid"].split("-")[1]}.xml?view=boxscore', headers=headers)
 
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -331,7 +331,7 @@ def func_cancis(args):
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
         }
-        response = requests.get(f'https://presto-en.usports.ca/sports/mbkb/{season_alias}/players?id={args["extid"].split("-")[1]}', headers=headers)
+        response = requests.get(f'https://en.usports.ca/sports/mbkb/{season_alias}/players?id={args["extid"].split("-")[1]}', headers=headers)
 
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')

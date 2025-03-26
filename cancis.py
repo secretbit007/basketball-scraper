@@ -35,6 +35,7 @@ def get_schedule_by_month(season_alias, year, month):
                 game['extid'] = ''
                 game['source'] = ''
                 game['type'] = 'Regular'
+                game['playDate'] = datetime.strptime(modal.find('span', class_='date').text.strip(), "%A, %B %d, %Y").strftime('%Y-%m-%d')
                 
                 links = columns[2].find_all('a')
 

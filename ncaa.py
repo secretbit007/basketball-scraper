@@ -43,7 +43,6 @@ def get_schedule(season, seasonDivisionID, sportCode):
                 daylist = [minDate + timedelta(days=delta) for delta in range((maxDate - minDate).days)]
                 
                 def get_info(day: datetime):
-                    print(day)
                     # sleep(1)
                     response = requests.get(f"https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date={day.strftime('%m/%d/%Y')}&conference_id=0&tournament_id=&commit=Submit", headers=headers)
                     
@@ -178,14 +177,12 @@ def get_schedule(season, seasonDivisionID, sportCode):
                             game['type'] = 'Regular Season'
                             games.append(game)
                     else:
-                        print(response.status_code, day.strftime('%Y-%m-%d'))
+                        pass
                             
                 for day in daylist:
                     get_info(day)
             
     return json.dumps(games, indent=4)
-
-print(get_schedule('2024-25', 'D-III', 'MBB'))
 
 def func_ncaa(args, seasonDivisionID):
     if args['f'] == 'schedule':

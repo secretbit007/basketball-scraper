@@ -207,12 +207,15 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                     continue
 
                             game['type'] = 'Regular Season'
-                            games.append(game)
+                            return game
                     else:
-                        pass
+                        return None
                 
-                with ThreadPoolExecutor(max_workers=100) as executor:
-                    executor.map(get_info, daylist)
+                pool = ThreadPoolExecutor(max_workers=20)
+                futures = [pool.submit(get_info, n) for n in daylist]
+                for future in as_completed(futures):
+                    if future.result():
+                        games.append(future.result())
             
     return json.dumps(games, indent=4)
 

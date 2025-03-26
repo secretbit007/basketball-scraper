@@ -79,7 +79,7 @@ def get_boxscore(extid, season_alias):
     info = {}
     info['extid'] = extid
     info['playDate'] = datetime.strftime(datetime.strptime(info['extid'].split('-')[1].split('_')[0], '%Y%m%d'), '%Y-%m-%d')
-    info['source'] = 'https://en.usports.ca/sports/mbkb/{season_alias}/boxscores/{extid.split("-")[1]}.xml?view=boxscore'
+    info['source'] = f'https://en.usports.ca/sports/mbkb/{season_alias}/boxscores/{extid.split("-")[1]}.xml?view=boxscore'
     info['type'] = extid.split('-')[2]
 
     response = requests.get(f'https://en.usports.ca/sports/mbkb/{season_alias}/boxscores/{extid.split("-")[1]}.xml?view=boxscore', headers=headers)

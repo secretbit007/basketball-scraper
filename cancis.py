@@ -1,5 +1,81 @@
 from library import *
 
+def get_schedule_by_month(season_alias, year, month):
+    results = []
+    headers = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
+    }
+    response = requests.get(f'https://en.usports.ca/sports/mbkb/composite?y={year}&m={month:02d}', headers=headers)
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        items = soup.find_all('div', class_='cal-show-more')
+        
+        for item in items:
+            data_target = item.find('a').get('data-bs-target')
+            target_id = data_target.split('#')[1]
+
+            modal = soup.find('div', id=target_id)
+
+            tbody = modal.find('tbody')
+            rows = tbody.find_all('tr')
+
+            for row in rows:
+                columns = row.find_all('td')
+
+                season = columns[1].find('a').get('href').split('/')[-2]
+
+                if season != season_alias:
+                    continue
+
+                game = {}
+                game['competition'] = "Men's Basketball"
+                game['round'] = columns[0].text.strip()
+                game['state'] = 'Not Finished'
+                game['extid'] = ''
+                game['source'] = ''
+                game['type'] = 'Regular'
+                
+                links = columns[2].find_all('a')
+
+                for link in links:
+                    if link.text.strip() == 'Box Score':
+                        game['state'] = 'Finished'
+                        game['source'] = 'https://en.usports.ca' + link['href']
+
+                        if season_alias[-1] == 'p':
+                            game['extid'] = f"p-{link['href'].split('/')[-1].replace('.xml', '')}"
+                        elif season_alias[-1] == 'c':
+                            game['extid'] = f"c-{link['href'].split('/')[-1].replace('.xml', '')}"
+                        else:
+                            game['extid'] = f"o-{link['href'].split('/')[-1].replace('.xml', '')}"
+                        break
+                
+                team_logos = columns[1].find_all('img')
+                game['visitorTeam'] = {
+                    'extid': team_logos[1].get('src').split('/')[-1].split('.')[0],
+                    'name': team_logos[1].get('alt').strip()
+                }
+
+                game['homeTeam'] = {
+                    'extid': team_logos[0].get('src').split('/')[-1].split('.')[0],
+                    'name': team_logos[0].get('alt').strip()
+                }
+
+                if game['state'] == 'Finished':
+                    score = columns[1].find('span', class_='cal-event-result').text.strip().split(',')[1].strip()
+                    game['visitorScores'] = {
+                        'final': score.split('-')[1].strip()
+                    }
+                    game['homeScores'] = {
+                        'final': score.split('-')[0].strip()
+                    }
+                    game['extid'] = f'{game["extid"]}-{game["round"]}'
+
+                results.append(game)
+
+    return results
+
 def get_schedule(season_alias):
     results = []
     feed = feedparser.parse(f'https://en.usports.ca/sports/mbkb/{season_alias}/schedule?print=rss')
@@ -11,64 +87,23 @@ def get_schedule(season_alias):
         date_str = entry['updated'].split('T')[0]
         date_list.append(date_str)
 
-    headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
-    }
-    response = requests.get(f'https://en.usports.ca/sports/mbkb/{season_alias}/schedule', headers=headers)
+    startDate = date_list[0]
+    endDate = date_list[-1]
 
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
-        items = soup.find_all('div', class_='event-row')
-        index = 0
-        for item in items:
-            game = {}
-            game['competition'] = "Men's Basketball"
-            game['playDate'] = date_list[index]
-            game['round'] = ''
-            game['state'] = 'confirmed'
-            game['extid'] = ''
-            game['source'] = ''
-            
-            links = item.find_all('a')
+    cur_date = datetime.strptime(startDate, '%Y-%m-%d').date()
+    end = datetime.strptime(endDate, '%Y-%m-%d').date()
 
-            for link in links:
-                if link.text.strip() == 'Box Score':
-                    game['state'] = 'result'
-                    game['source'] = 'https://en.usports.ca' + link['href']
+    month_list = []
 
-                    if season_alias[-1] == 'p':
-                        game['extid'] = f"p-{link['href'].split('/')[-1].replace('.xml', '')}"
-                    elif season_alias[-1] == 'c':
-                        game['extid'] = f"c-{link['href'].split('/')[-1].replace('.xml', '')}"
-                    else:
-                        game['extid'] = f"o-{link['href'].split('/')[-1].replace('.xml', '')}"
-                    break
-            
-            team_logos = item.find_all('img')
-            game['visitorTeam'] = {
-                'extid': team_logos[1].get('src').split('/')[-1].split('.')[0],
-                'name': team_logos[1].get('alt').replace('team logo', '').strip()
-            }
+    while cur_date <= end:
+        month_list.append(cur_date)
+        cur_date += relativedelta(months=1)
 
-            game['homeTeam'] = {
-                'extid': team_logos[0].get('src').split('/')[-1].split('.')[0],
-                'name': team_logos[0].get('alt').replace('team logo', '').strip()
-            }
+    if month_list[-1].month != end.month:
+        month_list.append(end)
 
-            game['type'] = item.find('div', class_='col-12').find('div', class_='text-uppercase').text.strip()
-
-            if game['state'] == 'result':
-                team_rows = item.find_all('div', class_='row')
-                game['visitorScores'] = {
-                    'final': team_rows[1].find_all('div', class_='col-auto')[-1].text.strip()
-                }
-                game['homeScores'] = {
-                    'final': team_rows[0].find_all('div', class_='col-auto')[-1].text.strip()
-                }
-                game['extid'] = f'{game["extid"]}-{game["type"]}'
-
-            results.append(game)
-            index += 1
+    for month in month_list:
+        results.extend(get_schedule_by_month(season_alias, month.year, month.month))
 
     return results
 

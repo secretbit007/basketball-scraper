@@ -76,16 +76,16 @@ def get_boxscore(extid, season_alias):
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
     }
+    info = {}
+    info['extid'] = extid
+    info['playDate'] = datetime.strftime(datetime.strptime(info['extid'].split('-')[1].split('_')[0], '%Y%m%d'), '%Y-%m-%d')
+    info['source'] = 'https://en.usports.ca/sports/mbkb/{season_alias}/boxscores/{extid.split("-")[1]}.xml?view=boxscore'
+    info['type'] = extid.split('-')[2]
+
     response = requests.get(f'https://en.usports.ca/sports/mbkb/{season_alias}/boxscores/{extid.split("-")[1]}.xml?view=boxscore', headers=headers)
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
-
-        info = {}
-        info['extid'] = extid
-        info['playDate'] = datetime.strftime(datetime.strptime(info['extid'].split('-')[1].split('_')[0], '%Y%m%d'), '%Y-%m-%d')
-        info['source'] = response.url
-        info['type'] = extid.split('-')[2]
 
         linescore = soup.find('div', class_='linescore')
         rows = linescore.find_all('tr')
@@ -297,6 +297,8 @@ def get_boxscore(extid, season_alias):
         stat['items'] = item
         info['stats'].append(stat)
 
+        return info
+    else:
         return info
 
 def func_cancis(args):

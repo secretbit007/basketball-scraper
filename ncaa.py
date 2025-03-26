@@ -63,7 +63,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 
                             game['playDate'] = datetime.strptime(rows[0].find('div', class_='col-6').text.strip().split(' ')[0], '%m/%d/%Y').strftime('%Y-%m-%d')
                             game['round'] = '-'
-                            game['state'] = "result"
+                            game['state'] = "Result"
                             
                             if len(rows) > 4:
                                 game['homeTeam'] = {

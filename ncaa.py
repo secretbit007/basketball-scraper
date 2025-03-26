@@ -1,188 +1,199 @@
 from library import *
 
-def func_ncaa(args, seasonDivisionID):
+def get_schedule(season, seasonDivisionID, sportCode):
+    games = []
+
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
     }
     
-    if args['f'] == 'schedule':
-        season = f"{args['season']}-{str(int(args['season'])+1)[-2:]}"
-        sportCode = 'MBB'
-        games = []
+    response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&sport_code={sportCode}&academic_year=&division=&game_date=&commit=Submit', headers=headers)
 
-        response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&sport_code={sportCode}&academic_year=&division=&game_date=&commit=Submit', headers=headers)
-
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        sportYearSelector = soup.find('select', id='game_sport_year_ctl_id_select')
+        sportYearOptions: List[Tag] = sportYearSelector.find_all('option')
+        
+        for sportYearOption in sportYearOptions:
+            sportYear = sportYearOption.text.strip()
+            
+            if sportYear == season:
+                sportYearCode = sportYearOption['value']
+        
+        response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&game_sport_year_ctl_id={sportYearCode}&conference_id=0&conference_id=0&tournament_id=&division=1&commit=Submit', headers=headers)
+        
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            sportYearSelector = soup.find('select', id='game_sport_year_ctl_id_select')
-            sportYearOptions: List[Tag] = sportYearSelector.find_all('option')
+            seasonDivisionSelector = soup.find('select', id='season_division_id_select')
+            seasonDivisionOptions: List[Tag] = seasonDivisionSelector.find_all('option')
             
-            for sportYearOption in sportYearOptions:
-                sportYear = sportYearOption.text.strip()
+            for seasonDivisionOption in seasonDivisionOptions:
+                seasonDivision = seasonDivisionOption.text.strip()
                 
-                if sportYear == season:
-                    sportYearCode = sportYearOption['value']
-            
-            response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&game_sport_year_ctl_id={sportYearCode}&conference_id=0&conference_id=0&tournament_id=&division=1&commit=Submit', headers=headers)
-            
+                if seasonDivision == seasonDivisionID:
+                    seasonDivisionCode = seasonDivisionOption['value']
+
+            response = requests.get(f'https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date=&conference_id=0&tournament_id=&commit=Submit', headers=headers)
+
             if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'html.parser')
+                minDate = datetime.strptime(re.search(r'minDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
+                maxDate = datetime.strptime(re.search(r'maxDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
+                daylist = [minDate + timedelta(days=delta) for delta in range((maxDate - minDate).days)]
                 
-                seasonDivisionSelector = soup.find('select', id='season_division_id_select')
-                seasonDivisionOptions: List[Tag] = seasonDivisionSelector.find_all('option')
+                def get_info(day: datetime):
+                    print(day)
+                    # sleep(1)
+                    response = requests.get(f"https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date={day.strftime('%m/%d/%Y')}&conference_id=0&tournament_id=&commit=Submit", headers=headers)
+                    
+                    if response.status_code == 200:
+                        soup = BeautifulSoup(response.text, 'html.parser')
+                        matches: List[Tag] = soup.find_all('div', class_='card-body')[1:]
                 
-                for seasonDivisionOption in seasonDivisionOptions:
-                    seasonDivision = seasonDivisionOption.text.strip()
-                    
-                    if seasonDivision == seasonDivisionID:
-                        seasonDivisionCode = seasonDivisionOption['value']
-
-                response = requests.get(f'https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date=&conference_id=0&tournament_id=&commit=Submit', headers=headers)
-
-                if response.status_code == 200:
-                    minDate = datetime.strptime(re.search(r'minDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
-                    maxDate = datetime.strptime(re.search(r'maxDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
-                    daylist = [minDate + timedelta(days=delta) for delta in range((maxDate - minDate).days)]
-                    
-                    def get_info(day: datetime):
-                        # sleep(1)
-                        response = requests.get(f"https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date={day.strftime('%m/%d/%Y')}&conference_id=0&tournament_id=&commit=Submit", headers=headers)
-                        
-                        if response.status_code == 200:
-                            soup = BeautifulSoup(response.text, 'html.parser')
-                            matches: List[Tag] = soup.find_all('div', class_='card-body')[1:]
-                    
-                            for match in matches:
-                                firstRow = match.find('tr')
-                                rows: List[Tag] = [firstRow] + firstRow.find_next_siblings('tr')
+                        for match in matches:
+                            table = match.find('table')
+                            rows = table.find_all('tr', recursive=False)
+                            
+                            game = {}
+                            
+                            if len(rows) > 4:
+                                game['competition'] = rows[1].text.strip()
+                            else:
+                                game['competition'] = '-'
                                 
-                                game = {}
+                            game['playDate'] = datetime.strptime(rows[0].find('div', class_='col-6').text.strip().split(' ')[0], '%m/%d/%Y').strftime('%Y-%m-%d')
+                            game['round'] = '-'
+                            game['state'] = "result"
+                            
+                            if len(rows) > 4:
+                                game['homeTeam'] = {
+                                    'name': rows[3].find_all('td')[1].text.strip()
+                                }
                                 
-                                if len(rows) > 4:
-                                    game['competition'] = rows[1].text.strip()
+                                game['homeTeam']['name'] = game['homeTeam']['name'].split('(')[0].strip()
+                                
+                                if game['homeTeam']['name'][0] == '#':
+                                    game['homeTeam']['name'] = ' '.join(game['homeTeam']['name'].split(' ')[1:])
+                                
+                                teamObj = rows[3].find_all('td')[1].find('a')
+                                
+                                if teamObj:
+                                    game['homeTeam']['extid'] = teamObj.get('href').split('/')[-1]
                                 else:
-                                    game['competition'] = '-'
-                                    
-                                game['playDate'] = datetime.strptime(rows[0].find('div', class_='col-6').text.strip().split(' ')[0], '%m/%d/%Y').strftime('%Y-%m-%d')
-                                game['round'] = '-'
-                                game['state'] = "result" if match.find('div', class_='livestream_status').text.strip() == "Final" else "confirmed"
-                                
-                                if len(rows) > 4:
-                                    game['homeTeam'] = {
-                                        'name': rows[3].find_all('td')[1].text.strip()
-                                    }
-                                    
-                                    game['homeTeam']['name'] = game['homeTeam']['name'].split('(')[0].strip()
-                                    
-                                    if game['homeTeam']['name'][0] == '#':
-                                        game['homeTeam']['name'] = ' '.join(game['homeTeam']['name'].split(' ')[1:])
-                                    
-                                    teamObj = rows[3].find_all('td')[1].find('a')
-                                    
-                                    if teamObj:
-                                        game['homeTeam']['extid'] = teamObj.get('href').split('/')[-1]
-                                    else:
-                                        # game['homeTeam']['extid'] = '-'
-                                        continue
+                                    # game['homeTeam']['extid'] = '-'
+                                    continue
 
-                                    game['visitorTeam'] = {
-                                        'name': rows[2].find_all('td')[1].text.strip()
-                                    }
-                                    
-                                    game['visitorTeam']['name'] = game['visitorTeam']['name'].split('(')[0].strip()
-                                    
-                                    if game['visitorTeam']['name'][0] == '#':
-                                        game['visitorTeam']['name'] = ' '.join(game['visitorTeam']['name'].split(' ')[1:])
-                                    
-                                    teamObj = rows[2].find_all('td')[1].find('a')
-                                    
-                                    if teamObj:
-                                        game['visitorTeam']['extid'] = teamObj.get('href').split('/')[-1]
-                                    else:
-                                        # game['visitorTeam']['extid'] = '-'
-                                        continue
-                                    
-                                    if game['state'] == "result":
-                                        boxScoreObj = rows[-1].find('a')
-                                        
-                                        if boxScoreObj:
-                                            game['extid'] = boxScoreObj.get('href').split('/')[-2]
-                                            game['source'] = f"https://stats.ncaa.org{boxScoreObj.get('href')}"
-                                        else:
-                                            continue
-                                            
-                                        game['homeScores'] = {
-                                            'final': rows[3].find('td', class_='totalcol').text.strip()
-                                        }
-                                        game['visitorScores'] = {
-                                            'final': rows[2].find('td', class_='totalcol').text.strip()
-                                        }
-                                    else:
-                                        continue
+                                game['visitorTeam'] = {
+                                    'name': rows[2].find_all('td')[1].text.strip()
+                                }
+                                
+                                game['visitorTeam']['name'] = game['visitorTeam']['name'].split('(')[0].strip()
+                                
+                                if game['visitorTeam']['name'][0] == '#':
+                                    game['visitorTeam']['name'] = ' '.join(game['visitorTeam']['name'].split(' ')[1:])
+                                
+                                teamObj = rows[2].find_all('td')[1].find('a')
+                                
+                                if teamObj:
+                                    game['visitorTeam']['extid'] = teamObj.get('href').split('/')[-1]
                                 else:
-                                    game['homeTeam'] = {
-                                        'name': rows[2].find_all('td')[1].text.strip()
-                                    }
-                                    
-                                    game['homeTeam']['name'] = game['homeTeam']['name'].split('(')[0].strip()
-                                    
-                                    if game['homeTeam']['name'][0] == '#':
-                                        game['homeTeam']['name'] = ' '.join(game['homeTeam']['name'].split(' ')[1:])
-                                    
-                                    teamObj = rows[2].find_all('td')[1].find('a')
-                                    
-                                    if teamObj:
-                                        game['homeTeam']['extid'] = teamObj.get('href').split('/')[-1]
-                                    else:
-                                        # game['homeTeam']['extid'] = '-'
-                                        continue
-
-                                    game['visitorTeam'] = {
-                                        'name': rows[1].find_all('td')[1].text.strip()
-                                    }
-                                    
-                                    game['visitorTeam']['name'] = game['visitorTeam']['name'].split('(')[0].strip()
-                                    
-                                    if game['visitorTeam']['name'][0] == '#':
-                                        game['visitorTeam']['name'] = ' '.join(game['visitorTeam']['name'].split(' ')[1:])
-                                    
-                                    teamObj = rows[1].find_all('td')[1].find('a')
-                                    
-                                    if teamObj:
-                                        game['visitorTeam']['extid'] = teamObj.get('href').split('/')[-1]
-                                    else:
-                                        # game['visitorTeam']['extid'] = '-'
-                                        continue
-                                    
-                                    if game['state'] == "result":
-                                        boxScoreObj = rows[-1].find('a')
-                                        
-                                        if boxScoreObj:
-                                            game['extid'] = boxScoreObj.get('href').split('/')[-2]
-                                            game['source'] = f"https://stats.ncaa.org{boxScoreObj.get('href')}"
-                                        else:
-                                            continue
-                                            
-                                        game['homeScores'] = {
-                                            'final': rows[2].find('td', class_='totalcol').text.strip()
-                                        }
-                                        game['visitorScores'] = {
-                                            'final': rows[1].find('td', class_='totalcol').text.strip()
-                                        }
-                                    else:
-                                        continue
-
-                                game['type'] = 'Regular Season'
-                                games.append(game)
-                        else:
-                            print(response.status_code, day.strftime('%Y-%m-%d'))
+                                    # game['visitorTeam']['extid'] = '-'
+                                    continue
                                 
-                    for day in daylist:
-                        get_info(day)
-                
-        return json.dumps(games, indent=4)
+                                if game['state'] == "result":
+                                    boxScoreObj = rows[-1].find('a')
+                                    
+                                    if boxScoreObj:
+                                        game['extid'] = boxScoreObj.get('href').split('/')[-2]
+                                        game['source'] = f"https://stats.ncaa.org{boxScoreObj.get('href')}"
+                                    else:
+                                        continue
+                                        
+                                    game['homeScores'] = {
+                                        'final': rows[3].find('td', class_='totalcol').text.strip()
+                                    }
+                                    game['visitorScores'] = {
+                                        'final': rows[2].find('td', class_='totalcol').text.strip()
+                                    }
+                                else:
+                                    continue
+                            else:
+                                game['homeTeam'] = {
+                                    'name': rows[2].find_all('td')[1].text.strip()
+                                }
+                                
+                                game['homeTeam']['name'] = game['homeTeam']['name'].split('(')[0].strip()
+                                
+                                if game['homeTeam']['name'][0] == '#':
+                                    game['homeTeam']['name'] = ' '.join(game['homeTeam']['name'].split(' ')[1:])
+                                
+                                teamObj = rows[2].find_all('td')[1].find('a')
+                                
+                                if teamObj:
+                                    game['homeTeam']['extid'] = teamObj.get('href').split('/')[-1]
+                                else:
+                                    # game['homeTeam']['extid'] = '-'
+                                    continue
+
+                                game['visitorTeam'] = {
+                                    'name': rows[1].find_all('td')[1].text.strip()
+                                }
+                                
+                                game['visitorTeam']['name'] = game['visitorTeam']['name'].split('(')[0].strip()
+                                
+                                if game['visitorTeam']['name'][0] == '#':
+                                    game['visitorTeam']['name'] = ' '.join(game['visitorTeam']['name'].split(' ')[1:])
+                                
+                                teamObj = rows[1].find_all('td')[1].find('a')
+                                
+                                if teamObj:
+                                    game['visitorTeam']['extid'] = teamObj.get('href').split('/')[-1]
+                                else:
+                                    # game['visitorTeam']['extid'] = '-'
+                                    continue
+                                
+                                if game['state'] == "result":
+                                    boxScoreObj = rows[-1].find('a')
+                                    
+                                    if boxScoreObj:
+                                        game['extid'] = boxScoreObj.get('href').split('/')[-2]
+                                        game['source'] = f"https://stats.ncaa.org{boxScoreObj.get('href')}"
+                                    else:
+                                        continue
+                                        
+                                    game['homeScores'] = {
+                                        'final': rows[2].find('td', class_='totalcol').text.strip()
+                                    }
+                                    game['visitorScores'] = {
+                                        'final': rows[1].find('td', class_='totalcol').text.strip()
+                                    }
+                                else:
+                                    continue
+
+                            game['type'] = 'Regular Season'
+                            games.append(game)
+                    else:
+                        print(response.status_code, day.strftime('%Y-%m-%d'))
+                            
+                for day in daylist:
+                    get_info(day)
+            
+    return json.dumps(games, indent=4)
+
+print(get_schedule('2024-25', 'D-III', 'MBB'))
+
+def func_ncaa(args, seasonDivisionID):
+    if args['f'] == 'schedule':
+        season = f"{args['season']}-{str(int(args['season'])+1)[-2:]}"
+        sportCode = 'MBB'
+
+        return get_schedule(season, seasonDivisionID, sportCode)
+        
     elif args['f'] == 'game':
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+        }
         response = requests.get(f'https://stats.ncaa.org/contests/{args["extid"]}/individual_stats', headers=headers)
         
         info = {}

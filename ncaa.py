@@ -14,7 +14,9 @@ def get_schedule(season, seasonDivisionID, sportCode):
     while True:
         try:
             response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&sport_code={sportCode}&academic_year=&division=&game_date=&commit=Submit', headers=headers, proxies=proxies)
-            break
+
+            if response.status_code == 200:            
+                break
         except:
             pass
 
@@ -33,7 +35,9 @@ def get_schedule(season, seasonDivisionID, sportCode):
         while True:
             try:
                 response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&game_sport_year_ctl_id={sportYearCode}&conference_id=0&conference_id=0&tournament_id=&division=1&commit=Submit', headers=headers, proxies=proxies)
-                break
+
+                if response.status_code == 200:
+                    break
             except:
                 continue
         
@@ -52,7 +56,9 @@ def get_schedule(season, seasonDivisionID, sportCode):
             while True:
                 try:
                     response = requests.get(f'https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date=&conference_id=0&tournament_id=&commit=Submit', headers=headers, proxies=proxies)
-                    break
+
+                    if response.status_code == 200:
+                        break
                 except:
                     continue
 
@@ -66,7 +72,9 @@ def get_schedule(season, seasonDivisionID, sportCode):
                     while True:
                         try:
                             response = requests.get(f"https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date={day.strftime('%m/%d/%Y')}&conference_id=0&tournament_id=&commit=Submit", headers=headers, proxies=proxies)
-                            break
+
+                            if response.status_code == 200:
+                                break
                         except:
                             continue
 

@@ -211,7 +211,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                     else:
                         pass
                 
-                with ThreadPoolExecutor(max_workers=10) as executor:
+                with ThreadPoolExecutor(max_workers=100) as executor:
                     executor.map(get_info, daylist)
             
     return json.dumps(games, indent=4)

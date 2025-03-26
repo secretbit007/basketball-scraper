@@ -6,8 +6,17 @@ def get_schedule(season, seasonDivisionID, sportCode):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
     }
+    proxies = {
+        'http': 'http://p.webshare.io:9999',
+        'https': 'http://p.webshare.io:9999'
+    }
     
-    response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&sport_code={sportCode}&academic_year=&division=&game_date=&commit=Submit', headers=headers)
+    while True:
+        try:
+            response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&sport_code={sportCode}&academic_year=&division=&game_date=&commit=Submit', headers=headers, proxies=proxies)
+            break
+        except:
+            pass
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -21,7 +30,12 @@ def get_schedule(season, seasonDivisionID, sportCode):
             if sportYear == season:
                 sportYearCode = sportYearOption['value']
         
-        response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&game_sport_year_ctl_id={sportYearCode}&conference_id=0&conference_id=0&tournament_id=&division=1&commit=Submit', headers=headers)
+        while True:
+            try:
+                response = requests.get(f'https://stats.ncaa.org/contests/livestream_scoreboards?utf8=%E2%9C%93&game_sport_year_ctl_id={sportYearCode}&conference_id=0&conference_id=0&tournament_id=&division=1&commit=Submit', headers=headers, proxies=proxies)
+                break
+            except:
+                continue
         
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -35,7 +49,12 @@ def get_schedule(season, seasonDivisionID, sportCode):
                 if seasonDivision == seasonDivisionID:
                     seasonDivisionCode = seasonDivisionOption['value']
 
-            response = requests.get(f'https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date=&conference_id=0&tournament_id=&commit=Submit', headers=headers)
+            while True:
+                try:
+                    response = requests.get(f'https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date=&conference_id=0&tournament_id=&commit=Submit', headers=headers, proxies=proxies)
+                    break
+                except:
+                    continue
 
             if response.status_code == 200:
                 minDate = datetime.strptime(re.search(r'minDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
@@ -44,8 +63,13 @@ def get_schedule(season, seasonDivisionID, sportCode):
                 
                 def get_info(day: datetime):
                     # sleep(1)
-                    response = requests.get(f"https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date={day.strftime('%m/%d/%Y')}&conference_id=0&tournament_id=&commit=Submit", headers=headers)
-                    
+                    while True:
+                        try:
+                            response = requests.get(f"https://stats.ncaa.org/season_divisions/{seasonDivisionCode}/livestream_scoreboards?utf8=%E2%9C%93&season_division_id=&game_date={day.strftime('%m/%d/%Y')}&conference_id=0&tournament_id=&commit=Submit", headers=headers, proxies=proxies)
+                            break
+                        except:
+                            continue
+
                     if response.status_code == 200:
                         soup = BeautifulSoup(response.text, 'html.parser')
                         matches: List[Tag] = soup.find_all('div', class_='card-body')[1:]
@@ -178,9 +202,9 @@ def get_schedule(season, seasonDivisionID, sportCode):
                             games.append(game)
                     else:
                         pass
-                            
-                for day in daylist:
-                    get_info(day)
+                
+                with ThreadPoolExecutor(max_workers=10) as executor:
+                    executor.map(get_info, daylist)
             
     return json.dumps(games, indent=4)
 

@@ -66,8 +66,9 @@ def get_schedule(season, seasonDivisionID, sportCode):
                 minDate = datetime.strptime(re.search(r'minDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
                 maxDate = datetime.strptime(re.search(r'maxDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
                 daylist = [minDate + timedelta(days=delta) for delta in range((maxDate - minDate).days)]
-                
+
                 def get_info(day: datetime):
+                    results = []
                     # sleep(1)
                     while True:
                         try:
@@ -207,15 +208,15 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                     continue
 
                             game['type'] = 'Regular Season'
-                            return game
-                    else:
-                        return None
+                            results.append(game)
+                    
+                    return results
                 
-                pool = ThreadPoolExecutor(max_workers=20)
+                pool = ThreadPoolExecutor(max_workers=30)
                 futures = [pool.submit(get_info, n) for n in daylist]
                 for future in as_completed(futures):
                     if future.result():
-                        games.append(future.result())
+                        games.extend(future.result())
             
     return json.dumps(games, indent=4)
 

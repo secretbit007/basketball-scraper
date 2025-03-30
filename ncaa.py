@@ -65,7 +65,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
             if response.status_code == 200:
                 minDate = datetime.strptime(re.search(r'minDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
                 maxDate = datetime.strptime(re.search(r'maxDate: \'(.*)\'', response.text).group(1), '%m/%d/%Y')
-                daylist = [minDate + timedelta(days=delta) for delta in range((maxDate - minDate).days)]
+                daylist = [minDate + timedelta(days=delta) for delta in range((maxDate - minDate).days + 1)]
 
                 def get_info(day: datetime):
                     results = []
@@ -220,6 +220,183 @@ def get_schedule(season, seasonDivisionID, sportCode):
             
     return json.dumps(games, indent=4)
 
+def get_boxscore(extid):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+    }
+    response = requests.get(f'https://stats.ncaa.org/contests/{extid}/individual_stats', headers=headers)
+    
+    info = {}
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        tables: List[Tag] = soup.find_all('table')
+
+        info['extid'] = extid
+        info['playDate'] = datetime.strptime(tables[1].find_all('tr')[3].text.split(' ')[0].strip(), '%m/%d/%Y').strftime('%Y-%m-%d')
+        info['source'] = f'https://stats.ncaa.org/contests/{extid}/individual_stats'
+        info['type'] = 'Regular Season'
+        info['stats'] = []
+
+        homeTeam = tables[-1]
+        visitorTeam = tables[-2]
+
+        info['homeTeam'] = {
+            'name': tables[0].tr.td.find_next_siblings('td')[5].text.strip()
+        }
+        
+        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[5].find('a')
+        
+        if teamLinkObj:
+            info['homeTeam']['extid'] = teamLinkObj.get('href').split('/')[-1]
+        else:
+            info['homeTeam']['extid'] = '-'
+            
+        info['homeScores'] = {
+            'final': tables[1].find_all('tr')[2].find_all('td')[-1].text
+        }
+
+        players = homeTeam.find('tbody').find_all('tr', recursive=False)[:-2]
+
+        for player in players:
+            cells = player.find_all('td')
+            
+            stat = {}
+            stat['team'] = info['homeTeam']['extid']
+            stat['player_extid'] = f"{cells[1].text.strip()}_{stat['team']}"
+            stat['player_name'] = cells[1].text.strip()
+            stat['player_firstname'] = cells[1].text.split(' ')[0].strip()
+            stat['player_lastname'] = cells[1].text.split(' ')[1].strip()
+
+            item = {}
+            item['3pts Attempts'] = cells[7].text
+            item['3pts Made'] = cells[6].text
+            item['2pts Attempts'] = int(cells[5].text) - int(cells[7].text)
+            item['2pts Made'] = int(cells[4].text) - int(cells[6].text)
+            item['Assists'] = cells[14].text
+            item['Block Shots'] = cells[17].text
+            item['Defensive rebounds'] = cells[12].text
+            item['FT Attempts'] = cells[9].text
+            item['FT Made'] = cells[8].text
+            
+            try:
+                item['Minutes played'] = round((datetime.strptime(cells[3].text, '%M:%S').minute * 60 + datetime.strptime(cells[3].text, '%M:%S').second) / 60)
+            except:
+                item['Minutes played'] = 0
+                
+            item['Offensive rebounds'] = cells[11].text
+            item['Personal fouls'] = cells[18].text
+            item['Points'] = cells[10].text
+            item['Steals'] = cells[16].text
+            item['Total rebounds'] = cells[13].text
+            item['Turnovers'] = cells[15].text
+
+            stat['items'] = item
+            info['stats'].append(stat)
+
+        stat = {}
+        stat['team'] = info['homeTeam']['extid']
+        stat['player_extid'] = 'team'
+        stat['player_firstname'] = ''
+        stat['player_lastname'] = '- TEAM -'
+        stat['player_name'] = '- TEAM -'
+        
+        teamCells = homeTeam.find('tbody').find_all('tr', recursive=False)[-2].find_all('td')
+        item = {}
+        item['Total rebounds'] = teamCells[13].text
+        item['Defensive rebounds'] = teamCells[12].text
+        item['Offensive rebounds'] = teamCells[11].text
+        item['Steals'] = teamCells[16].text
+        item['Turnovers'] = teamCells[15].text
+
+        stat['items'] = item
+        info['stats'].append(stat)
+        
+        info['visitorTeam'] = {
+            'name': tables[0].tr.td.find_next_siblings('td')[0].text.strip()
+        }
+        
+        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[0].find('a')
+        
+        if teamLinkObj:
+            info['visitorTeam']['extid'] = teamLinkObj.get('href').split('/')[-1]
+        else:
+            info['visitorTeam']['extid'] = '-'
+            
+        info['visitorScores'] = {
+            'final': tables[1].find_all('tr')[1].find_all('td')[-1].text
+        }
+
+        players = visitorTeam.find('tbody').find_all('tr', recursive=False)[:-2]
+
+        for player in players:
+            cells = player.find_all('td')
+            
+            stat = {}
+            stat['team'] = info['visitorTeam']['extid']
+            stat['player_extid'] = f"{cells[1].text.strip()}_{stat['team']}"
+            stat['player_name'] = cells[1].text.strip()
+            stat['player_firstname'] = cells[1].text.split(' ')[0].strip()
+            stat['player_lastname'] = cells[1].text.split(' ')[1].strip()
+
+            item = {}
+            item['3pts Attempts'] = cells[7].text
+            item['3pts Made'] = cells[6].text
+            item['2pts Attempts'] = int(cells[5].text) - int(cells[7].text)
+            item['2pts Made'] = int(cells[4].text) - int(cells[6].text)
+            item['Assists'] = cells[14].text
+            item['Block Shots'] = cells[17].text
+            item['Defensive rebounds'] = cells[12].text
+            item['FT Attempts'] = cells[9].text
+            item['FT Made'] = cells[8].text
+            
+            try:
+                item['Minutes played'] = round((datetime.strptime(cells[3].text, '%M:%S').minute * 60 + datetime.strptime(cells[3].text, '%M:%S').second) / 60)
+            except:
+                item['Minutes played'] = 0
+                
+            item['Offensive rebounds'] = cells[11].text
+            item['Personal fouls'] = cells[18].text
+            item['Points'] = cells[10].text
+            item['Steals'] = cells[16].text
+            item['Total rebounds'] = cells[13].text
+            item['Turnovers'] = cells[15].text
+
+            stat['items'] = item
+            info['stats'].append(stat)
+        
+        stat = {}
+        stat['team'] = info['visitorTeam']['extid']
+        stat['player_extid'] = 'team'
+        stat['player_firstname'] = ''
+        stat['player_lastname'] = '- TEAM -'
+        stat['player_name'] = '- TEAM -'
+
+        teamCells = visitorTeam.find('tbody').find_all('tr', recursive=False)[-2].find_all('td')
+        item = {}
+        item['Total rebounds'] = teamCells[13].text
+        item['Defensive rebounds'] = teamCells[12].text
+        item['Offensive rebounds'] = teamCells[11].text
+        item['Steals'] = teamCells[16].text
+        item['Turnovers'] = teamCells[15].text
+
+        stat['items'] = item
+        info['stats'].append(stat)
+
+        info['homeScores']['QT1'] = int(tables[1].find_all('tr')[2].find_all('td')[1].text)
+        info['homeScores']['QT2'] = int(tables[1].find_all('tr')[2].find_all('td')[2].text)
+        info['homeScores']['QT3'] = 0
+        info['homeScores']['QT4'] = 0
+        info['homeScores']['extra'] = int(info['homeScores']['final']) - info['homeScores']['QT1'] - info['homeScores']['QT2']
+
+        info['visitorScores']['QT1'] = int(tables[1].find_all('tr')[1].find_all('td')[1].text)
+        info['visitorScores']['QT2'] = int(tables[1].find_all('tr')[1].find_all('td')[2].text)
+        info['visitorScores']['QT3'] = 0
+        info['visitorScores']['QT4'] = 0
+        info['visitorScores']['extra'] = int(info['visitorScores']['final']) - info['visitorScores']['QT1'] - info['visitorScores']['QT2']
+                                
+    return info
+
 def func_ncaa(args, seasonDivisionID):
     if args['f'] == 'schedule':
         season = f"{args['season']}-{str(int(args['season'])+1)[-2:]}"
@@ -228,181 +405,7 @@ def func_ncaa(args, seasonDivisionID):
         return get_schedule(season, seasonDivisionID, sportCode)
         
     elif args['f'] == 'game':
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-        }
-        response = requests.get(f'https://stats.ncaa.org/contests/{args["extid"]}/individual_stats', headers=headers)
-        
-        info = {}
-
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            tables: List[Tag] = soup.find_all('table')
-
-            info['extid'] = args['extid']
-            info['playDate'] = datetime.strptime(tables[1].find_all('tr')[3].text.split(' ')[0].strip(), '%m/%d/%Y').strftime('%Y-%m-%d')
-            info['source'] = f'https://stats.ncaa.org/contests/{args["extid"]}/individual_stats'
-            info['type'] = 'Regular Season'
-            info['stats'] = []
-
-            homeTeam = tables[-1]
-            visitorTeam = tables[-2]
-
-            info['homeTeam'] = {
-                'name': tables[0].tr.td.find_next_siblings('td')[5].span.text.strip()
-            }
-            
-            teamLinkObj = tables[0].tr.td.find_next_siblings('td')[5].find('a')
-            
-            if teamLinkObj:
-                info['homeTeam']['extid'] = teamLinkObj.get('href').split('/')[-1]
-            else:
-                info['homeTeam']['extid'] = '-'
-                
-            info['homeScores'] = {
-                'final': tables[1].find_all('tr')[2].find_all('td')[-1].text
-            }
-
-            players = homeTeam.find('thead').find_next_siblings('tr')
-
-            for player in players:
-                cells = player.find_all('td')
-                
-                stat = {}
-                stat['team'] = info['homeTeam']['extid']
-                stat['player_extid'] = f"{cells[1].text.strip()}_{stat['team']}"
-                stat['player_name'] = cells[1].text.strip()
-                stat['player_firstname'] = cells[1].text.split(' ')[0].strip()
-                stat['player_lastname'] = cells[1].text.split(' ')[1].strip()
-
-                item = {}
-                item['3pts Attempts'] = cells[7].text
-                item['3pts Made'] = cells[6].text
-                item['2pts Attempts'] = int(cells[5].text) - int(cells[7].text)
-                item['2pts Made'] = int(cells[4].text) - int(cells[6].text)
-                item['Assists'] = cells[14].text
-                item['Block Shots'] = cells[17].text
-                item['Defensive rebounds'] = cells[12].text
-                item['FT Attempts'] = cells[9].text
-                item['FT Made'] = cells[8].text
-                
-                try:
-                    item['Minutes played'] = round((datetime.strptime(cells[3].text, '%M:%S').minute * 60 + datetime.strptime(cells[3].text, '%M:%S').second) / 60)
-                except:
-                    item['Minutes played'] = 0
-                    
-                item['Offensive rebounds'] = cells[11].text
-                item['Personal fouls'] = cells[18].text
-                item['Points'] = cells[10].text
-                item['Steals'] = cells[16].text
-                item['Total rebounds'] = cells[13].text
-                item['Turnovers'] = cells[15].text
-
-                stat['items'] = item
-                info['stats'].append(stat)
-
-            stat = {}
-            stat['team'] = info['homeTeam']['extid']
-            stat['player_extid'] = 'team'
-            stat['player_firstname'] = ''
-            stat['player_lastname'] = '- TEAM -'
-            stat['player_name'] = '- TEAM -'
-            
-            teamCells = homeTeam.find('tfoot').find('tr').find_all('td')
-            item = {}
-            item['Total rebounds'] = teamCells[13].text
-            item['Defensive rebounds'] = teamCells[12].text
-            item['Offensive rebounds'] = teamCells[11].text
-            item['Steals'] = teamCells[16].text
-            item['Turnovers'] = teamCells[15].text
-
-            stat['items'] = item
-            info['stats'].append(stat)
-            
-            info['visitorTeam'] = {
-                'name': tables[0].tr.td.find_next_siblings('td')[0].span.text.strip()
-            }
-            
-            teamLinkObj = tables[0].tr.td.find_next_siblings('td')[0].find('a')
-            
-            if teamLinkObj:
-                info['visitorTeam']['extid'] = teamLinkObj.get('href').split('/')[-1]
-            else:
-                info['visitorTeam']['extid'] = '-'
-                
-            info['visitorScores'] = {
-                'final': tables[1].find_all('tr')[1].find_all('td')[-1].text
-            }
-
-            players = visitorTeam.find('thead').find_next_siblings('tr')
-
-            for player in players:
-                cells = player.find_all('td')
-                
-                stat = {}
-                stat['team'] = info['visitorTeam']['extid']
-                stat['player_extid'] = f"{cells[1].text.strip()}_{stat['team']}"
-                stat['player_name'] = cells[1].text.strip()
-                stat['player_firstname'] = cells[1].text.split(' ')[0].strip()
-                stat['player_lastname'] = cells[1].text.split(' ')[1].strip()
-
-                item = {}
-                item['3pts Attempts'] = cells[7].text
-                item['3pts Made'] = cells[6].text
-                item['2pts Attempts'] = int(cells[5].text) - int(cells[7].text)
-                item['2pts Made'] = int(cells[4].text) - int(cells[6].text)
-                item['Assists'] = cells[14].text
-                item['Block Shots'] = cells[17].text
-                item['Defensive rebounds'] = cells[12].text
-                item['FT Attempts'] = cells[9].text
-                item['FT Made'] = cells[8].text
-                
-                try:
-                    item['Minutes played'] = round((datetime.strptime(cells[3].text, '%M:%S').minute * 60 + datetime.strptime(cells[3].text, '%M:%S').second) / 60)
-                except:
-                    item['Minutes played'] = 0
-                    
-                item['Offensive rebounds'] = cells[11].text
-                item['Personal fouls'] = cells[18].text
-                item['Points'] = cells[10].text
-                item['Steals'] = cells[16].text
-                item['Total rebounds'] = cells[13].text
-                item['Turnovers'] = cells[15].text
-
-                stat['items'] = item
-                info['stats'].append(stat)
-            
-            stat = {}
-            stat['team'] = info['visitorTeam']['extid']
-            stat['player_extid'] = 'team'
-            stat['player_firstname'] = ''
-            stat['player_lastname'] = '- TEAM -'
-            stat['player_name'] = '- TEAM -'
-
-            teamCells = visitorTeam.find('tfoot').find('tr').find_all('td')
-            item = {}
-            item['Total rebounds'] = teamCells[13].text
-            item['Defensive rebounds'] = teamCells[12].text
-            item['Offensive rebounds'] = teamCells[11].text
-            item['Steals'] = teamCells[16].text
-            item['Turnovers'] = teamCells[15].text
-
-            stat['items'] = item
-            info['stats'].append(stat)
-
-            info['homeScores']['QT1'] = int(tables[1].find_all('tr')[2].find_all('td')[1].text)
-            info['homeScores']['QT2'] = int(tables[1].find_all('tr')[2].find_all('td')[2].text)
-            info['homeScores']['QT3'] = 0
-            info['homeScores']['QT4'] = 0
-            info['homeScores']['extra'] = int(info['homeScores']['final']) - info['homeScores']['QT1'] - info['homeScores']['QT2']
-
-            info['visitorScores']['QT1'] = int(tables[1].find_all('tr')[1].find_all('td')[1].text)
-            info['visitorScores']['QT2'] = int(tables[1].find_all('tr')[1].find_all('td')[2].text)
-            info['visitorScores']['QT3'] = 0
-            info['visitorScores']['QT4'] = 0
-            info['visitorScores']['extra'] = int(info['visitorScores']['final']) - info['visitorScores']['QT1'] - info['visitorScores']['QT2']
-                                    
-        return info
+        return get_boxscore(args['extid'])
     elif args['f'] == 'player':
         name, team = args['extid'].split('_')
         
@@ -413,6 +416,9 @@ def func_ncaa(args, seasonDivisionID):
         info['firstname'] = name.split(' ')[0]
         info['lastname'] = name.split(' ')[1]
         
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+        }
         response = requests.get(f'https://stats.ncaa.org/teams/{team}/roster', headers=headers)
 
         if response.status_code == 200:

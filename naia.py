@@ -346,12 +346,6 @@ def func_naia(args):
 
         season_alias = f'{args["season"]}-{str(int(args["season"]) + 1)[-2:]}'
         games.extend(get_schedule(season_alias))
-
-        season_alias = f'{args["season"]}-{str(int(args["season"]) + 1)[-2:]}p'
-        games.extend(get_schedule(season_alias))
-
-        season_alias = f'{args["season"]}-{str(int(args["season"]) + 1)[-2:]}c'
-        games.extend(get_schedule(season_alias))
         
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

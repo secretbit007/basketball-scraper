@@ -141,13 +141,17 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                         game['source'] = f"https://stats.ncaa.org{boxScoreObj.get('href')}"
                                     else:
                                         continue
-                                        
-                                    game['homeScores'] = {
-                                        'final': rows[3].find('td', class_='totalcol').text.strip()
-                                    }
-                                    game['visitorScores'] = {
-                                        'final': rows[2].find('td', class_='totalcol').text.strip()
-                                    }
+                                    
+                                    try:
+                                        game['homeScores'] = {
+                                            'final': rows[3].find('td', class_='totalcol').text.strip()
+                                        }
+                                        game['visitorScores'] = {
+                                            'final': rows[2].find('td', class_='totalcol').text.strip()
+                                        }
+                                    except:
+                                        game['state'] = 'Canceled'
+                                        continue
                                 else:
                                     continue
                             else:

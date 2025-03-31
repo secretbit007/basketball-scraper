@@ -338,7 +338,7 @@ def get_boxscore(extid, season_alias):
     else:
         return info
 
-def func_cancis(args):
+def func_naia(args):
     if args['f'] == 'schedule':
         games = []
 

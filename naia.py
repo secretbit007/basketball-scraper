@@ -60,7 +60,8 @@ def get_schedule_by_date(date: str):
     return results
 
 def get_schedule(season_alias):
-    results = []
+    games = []
+
     feed = feedparser.parse(f'https://naiastats.prestosports.com/sports/mbkb/{season_alias}/schedule?print=rss')
     entries = feed.entries
     
@@ -70,10 +71,13 @@ def get_schedule(season_alias):
         date_str = entry['updated'].split('T')[0]
         date_list.append(date_str)
     
-    for date in date_list:
-        results.extend(get_schedule_by_date(date))
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        results = executor.map(get_schedule_by_date, date_list)
 
-    return results
+        for result in results:
+            games.extend(result)
+
+    return games
 
 def get_boxscore(extid, season_alias):
     headers = {

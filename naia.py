@@ -75,7 +75,8 @@ def get_schedule_by_month(season_alias, year, month):
 
                 results.append(game)
 
-    return resultsprint(get_schedule_by_month('2024-25', 2024, 12))
+    return results
+
 def get_schedule(season_alias):
     results = []
     feed = feedparser.parse(f'https://naiastats.prestosports.com/sports/mbkb/{season_alias}/schedule?print=rss')

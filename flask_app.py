@@ -35,6 +35,9 @@ def get_data():
 
     if args['source'] == 'FIBA_Livesco':
         return func_blg(args)
+    elif args['source'] == 'NAIA_PRESTO':
+        if args['lpar'] == 'NAIA':
+            func_naia(args)
 
     # Euroleague & Eurocup
     if args["lpar"] == 'E' or args["lpar"] == 'U':
@@ -55,8 +58,6 @@ def get_data():
         return func_lebplata(args)
     elif args["lpar"] == 'KLS':
         return func_kls(args)
-    elif args["lpar"] == "NAIA_PRESTO":
-        return func_naia(args)
     elif args["lpar"] == "CANCIS":
         return func_cancis(args)
     elif args["lpar"] == "VTB":

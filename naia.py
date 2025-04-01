@@ -69,9 +69,11 @@ def get_schedule(season_alias):
 
     for entry in entries:
         date_str = entry['updated'].split('T')[0]
-        date_list.append(date_str)
+
+        if date_str not in date_list:
+            date_list.append(date_str)
     
-    with ThreadPoolExecutor(max_workers=20) as executor:
+    with ThreadPoolExecutor(max_workers=10) as executor:
         results = executor.map(get_schedule_by_date, date_list)
 
         for result in results:

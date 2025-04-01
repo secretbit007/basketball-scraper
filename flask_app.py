@@ -37,7 +37,7 @@ def get_data():
         return func_blg(args)
     elif args['source'] == 'NAIA_PRESTO':
         if args['lpar'] == 'NAIA':
-            func_naia(args)
+            return func_naia(args)
 
     # Euroleague & Eurocup
     if args["lpar"] == 'E' or args["lpar"] == 'U':

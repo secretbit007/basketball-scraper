@@ -93,7 +93,7 @@ def get_boxscore(extid, season_alias):
     response = requests.get(f'https://naiastats.prestosports.com/sports/mbkb/{season_alias}/boxscores/{extid.split("-")[0]}.xml?view=boxscore', headers=headers)
 
     if response.status_code == 200:
-        info['playDate'] = datetime.strftime(datetime.strptime(info['extid'].split('-')[1].split('_')[0], '%Y%m%d'), '%Y-%m-%d')
+        info['playDate'] = datetime.strftime(datetime.strptime(info['extid'].split('-')[0].split('_')[0], '%Y%m%d'), '%Y-%m-%d')
 
         soup = BeautifulSoup(response.text, 'html.parser')
 

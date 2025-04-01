@@ -338,6 +338,28 @@ def get_boxscore(extid, season_alias):
     else:
         return info
 
+def get_player(extid, season_alias):
+    headers = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+    }
+    response = requests.get(f'https://naiastats.prestosports.com/sports/mbkb/{season_alias}/players?id={extid.split("-")[1]}', headers=headers)
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        player_info = soup.find('div', class_='bnt-name-info')
+
+        info = {}
+        info['name'] = player_info.find('h1').text.strip()
+        info['firstname'] = info['name'].split(' ')[0].strip()
+        info['lastname'] = info['name'].split(' ')[1].strip()
+        info['extid'] = extid
+        info['source'] = response.url
+        info['shirtNumber'] = player_info.find('div', class_='jersey-number-overlay').text.strip()
+        info['position'] = player_info.find_all('li')[0].text.strip()
+        info['team'] = player_info.find_all('li')[1].text.strip()
+
+        return info
+
 def func_naia(args):
     if args['f'] == 'schedule':
         games = []
@@ -371,22 +393,4 @@ def func_naia(args):
         else:
             season_alias = f'{args["season"]}-{str(int(args["season"]) + 1)[-2:]}'
         
-        headers = {
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
-        }
-        response = requests.get(f'https://naiastats.prestosports.com/sports/mbkb/{season_alias}/players?id={args["extid"].split("-")[1]}', headers=headers)
-
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            info = {}
-            info['name'] = soup.find('h2', class_='player-name').find_all('span')[0].text.strip()
-            info['firstname'] = info['name'].split(' ')[0].strip()
-            info['lastname'] = info['name'].split(' ')[1].strip()
-            info['extid'] = args['extid']
-            info['source'] = response.url
-            info['shirtNumber'] = soup.find('h2', class_='player-name').find_all('span')[1].text.strip().replace('#', '')
-            info['position'] = soup.find('h2', class_='player-name').find_all('span')[2].text.strip()
-            info['team'] = soup.find('h2', class_='player-name').find('a').text.strip()
-
-            return info
+        return get_player(args['extid'], season_alias)

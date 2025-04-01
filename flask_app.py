@@ -55,7 +55,7 @@ def get_data():
         return func_lebplata(args)
     elif args["lpar"] == 'KLS':
         return func_kls(args)
-    elif args["lpar"] == "NAIA":
+    elif args["lpar"] == "NAIA_PRESTO":
         return func_naia(args)
     elif args["lpar"] == "CANCIS":
         return func_cancis(args)

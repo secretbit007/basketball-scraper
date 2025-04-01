@@ -5,7 +5,7 @@ def get_schedule_by_month(season_alias, year, month):
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
     }
-    response = requests.get(f'https://naiastats.prestosports.com/sports/mbkb/composite?y={year}&m={month:02d}', headers=headers)
+    response = requests.get(f'https://naiastats.prestosports.com/sports/mbkb/scoreboard?y={year}&m={month:02d}', headers=headers)
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -75,8 +75,7 @@ def get_schedule_by_month(season_alias, year, month):
 
                 results.append(game)
 
-    return results
-
+    return resultsprint(get_schedule_by_month('2024-25', 2024, 12))
 def get_schedule(season_alias):
     results = []
     feed = feedparser.parse(f'https://naiastats.prestosports.com/sports/mbkb/{season_alias}/schedule?print=rss')

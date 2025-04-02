@@ -30,7 +30,7 @@ def get_schedule_by_date(date: str):
                 if link.text.strip() == 'Box Score':
                     fragments = link.get('href').split('/')
                     if len(fragments) > 5:
-                        if fragments[-4] == 'boxscores':
+                        if fragments[4] == 'boxscores':
                             game['state'] = 'Finished'
                             game['source'] = 'https://naiastats.prestosports.com' + link['href']
 

@@ -28,11 +28,15 @@ def get_schedule_by_date(date: str):
 
             for link in links:
                 if link.text.strip() == 'Box Score':
-                    game['state'] = 'Finished'
-                    game['source'] = 'https://naiastats.prestosports.com' + link['href']
+                    fragments = link.get('href').split('/')
+                    if len(fragments) > 5:
+                        if fragments[-4] == 'boxscores':
+                            print('hi')
+                            game['state'] = 'Finished'
+                            game['source'] = 'https://naiastats.prestosports.com' + link['href']
 
-                    game['extid'] = f"{link['href'].split('/')[-1].replace('.xml', '')}"
-                    break
+                            game['extid'] = f"{link['href'].split('/')[-1].replace('.xml', '')}"
+                            break
             
             team_logos = card_body.find_all('img')
             game['visitorTeam'] = {

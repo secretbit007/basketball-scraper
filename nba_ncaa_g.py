@@ -1,102 +1,109 @@
 from library import *
 
+def get_schedule(lpar, season):
+    games = []
+
+    startDate = None
+    endDate = None
+
+    # Get season end date
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+    }
+    if lpar == 'NBA':
+        response = requests.get('https://www.espn.com/nba/schedule?_xhr=pageContent', headers=headers)
+    elif lpar == 'G':
+        response = requests.get('https://www.espn.com/nba-g-league/schedule?_xhr=pageContent', headers=headers)
+    elif lpar == 'NCAA':
+        response = requests.get('https://www.espn.com/mens-college-basketball/schedule?_xhr=pageContent', headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()
+        startDate = datetime.strptime(data['seasonList'][season]['startDate'], '%Y-%m-%dT%H:%MZ')
+        endDate = datetime.strptime(data['seasonList'][season]['endDate'], '%Y-%m-%dT%H:%MZ')
+        daylist = [startDate + timedelta(days=delta) for delta in range((endDate - startDate).days)]
+
+        def get_info(day: datetime):
+            print(day)
+            if lpar == 'NBA':
+                response = requests.get(f'https://www.espn.com/nba/schedule/_/date/{day.strftime("%Y%m%d")}?_xhr=pageContent&original=date%3D{day.strftime("%Y%m%d")}&date={day.strftime("%Y%m%d")}', headers=headers)
+            elif lpar == 'G':
+                response = requests.get(f'https://www.espn.com/nba-g-league/schedule/_/date/{day.strftime("%Y%m%d")}?_xhr=pageContent&original=date%3D{day.strftime("%Y%m%d")}&date={day.strftime("%Y%m%d")}', headers=headers)
+            elif lpar == 'NCAA':
+                response = requests.get(f'https://www.espn.com/mens-college-basketball/schedule/_/date/{day.strftime("%Y%m%d")}/group/50?_xhr=pageContent&original=date%3D{day.strftime("%Y%m%d")}&date={day.strftime("%Y%m%d")}', headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                season_type = data['currentSeason']['name']
+                league = data['league']['name']
+                events = data['events']
+
+                for key in events.keys():
+                    for event in events[key]:
+                        if datetime.strptime(event['date'], '%Y-%m-%dT%H:%MZ').date() != day.date():
+                            continue
+                        
+                        game = {}
+                        game['competition'] = league
+                        game['playDate'] = datetime.strptime(event['date'], '%Y-%m-%dT%H:%MZ').strftime('%Y-%m-%d')
+                        game['round'] = ''
+
+                        if lpar == 'NBA':
+                            game['source'] = f'https://www.espn.com/nba/game?gameId={event["id"]}'
+                        elif lpar == 'G':
+                            game['source'] = f'https://www.espn.com/nba-g-league/game?gameId={event["id"]}'
+                        elif lpar == 'NCAA':
+                            game['source'] = f'https://www.espn.com/mens-college-basketball/game?gameId={event["id"]}'
+
+                        if event['completed'] == True:
+                            game['state'] = 'result'
+                        else:
+                            game['state'] = 'confirmed'
+
+                        game['type'] = season_type
+                        
+                        for competitor in event['competitors']:
+                            if competitor['isHome'] == True:
+                                game['homeTeam'] = {
+                                    'extid': competitor['id'],
+                                    'name': competitor['name']
+                                }
+
+                                if game['state'] == 'result':
+                                    game['homeScores'] = {
+                                        'final': competitor['score']
+                                    }
+                            else:
+                                game['visitorTeam'] = {
+                                    'extid': competitor['id'],
+                                    'name': competitor['name']
+                                }
+
+                                if game['state'] == 'result':
+                                    game['visitorScores'] = {
+                                        'final': competitor['score']
+                                    }
+
+                        game['extid'] = event['id']
+                        games.append(game)
+        
+        # with ThreadPoolExecutor(max_workers=20) as executor:
+        #     executor.map(get_info, daylist)
+
+        for day in daylist:
+            get_info(day)
+
+        return json.dumps(games, indent=4)
+    else:
+        return {'error': 'Something went wrong!'}
+
 def func_nba_ncaa_g(args):
 # Get schedule
     if args['f'] == 'schedule':
         args['season'] = request.args.get('season')
         args['season'] = str(int(args['season']) + 1)
 
-        games = []
-
-        startDate = None
-        endDate = None
-
-        # Get season end date
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
-        }
-        if args['lpar'] == 'NBA':
-            response = requests.get('https://www.espn.com/nba/schedule?_xhr=pageContent', headers=headers)
-        elif args['lpar'] == 'G':
-            response = requests.get('https://www.espn.com/nba-g-league/schedule?_xhr=pageContent', headers=headers)
-        elif args['lpar'] == 'NCAA':
-            response = requests.get('https://www.espn.com/mens-college-basketball/schedule?_xhr=pageContent', headers=headers)
-
-        if response.status_code == 200:
-            data = response.json()
-            startDate = datetime.strptime(data['seasonList'][args['season']]['startDate'], '%Y-%m-%dT%H:%MZ')
-            endDate = datetime.strptime(data['seasonList'][args['season']]['endDate'], '%Y-%m-%dT%H:%MZ')
-            daylist = [startDate + timedelta(days=delta) for delta in range((endDate - startDate).days)]
-
-            def get_info(day: datetime):
-                if args['lpar'] == 'NBA':
-                    response = requests.get(f'https://www.espn.com/nba/schedule/_/date/{day.strftime("%Y%m%d")}?_xhr=pageContent&original=date%3D{day.strftime("%Y%m%d")}&date={day.strftime("%Y%m%d")}', headers=headers)
-                elif args['lpar'] == 'G':
-                    response = requests.get(f'https://www.espn.com/nba-g-league/schedule/_/date/{day.strftime("%Y%m%d")}?_xhr=pageContent&original=date%3D{day.strftime("%Y%m%d")}&date={day.strftime("%Y%m%d")}', headers=headers)
-                elif args['lpar'] == 'NCAA':
-                    response = requests.get(f'https://www.espn.com/mens-college-basketball/schedule/_/date/{day.strftime("%Y%m%d")}/group/50?_xhr=pageContent&original=date%3D{day.strftime("%Y%m%d")}&date={day.strftime("%Y%m%d")}', headers=headers)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    season_type = data['currentSeason']['name']
-                    league = data['league']['name']
-                    events = data['events']
-
-                    for key in events.keys():
-                        for event in events[key]:
-                            if datetime.strptime(event['date'], '%Y-%m-%dT%H:%MZ').date() != day.date():
-                                continue
-                            
-                            game = {}
-                            game['competition'] = league
-                            game['playDate'] = datetime.strptime(event['date'], '%Y-%m-%dT%H:%MZ').strftime('%Y-%m-%d')
-                            game['round'] = ''
-
-                            if args['lpar'] == 'NBA':
-                                game['source'] = f'https://www.espn.com/nba/game?gameId={event["id"]}'
-                            elif args['lpar'] == 'G':
-                                game['source'] = f'https://www.espn.com/nba-g-league/game?gameId={event["id"]}'
-                            elif args['lpar'] == 'NCAA':
-                                game['source'] = f'https://www.espn.com/mens-college-basketball/game?gameId={event["id"]}'
-
-                            if event['completed'] == True:
-                                game['state'] = 'result'
-                            else:
-                                game['state'] = 'confirmed'
-
-                            game['type'] = season_type
-                            
-                            for competitor in event['competitors']:
-                                if competitor['isHome'] == True:
-                                    game['homeTeam'] = {
-                                        'extid': competitor['id'],
-                                        'name': competitor['name']
-                                    }
-
-                                    if game['state'] == 'result':
-                                        game['homeScores'] = {
-                                            'final': competitor['score']
-                                        }
-                                else:
-                                    game['visitorTeam'] = {
-                                        'extid': competitor['id'],
-                                        'name': competitor['name']
-                                    }
-
-                                    if game['state'] == 'result':
-                                        game['visitorScores'] = {
-                                            'final': competitor['score']
-                                        }
-
-                            game['extid'] = event['id']
-                            games.append(game)
-            
-            with ThreadPoolExecutor(max_workers=20) as executor:
-                executor.map(get_info, daylist)
-
-            return json.dumps(games, indent=4)
-        else:
-            return {'error': 'Something went wrong!'}
+        return get_schedule(args['lpar'])
     elif args['f'] == 'game':
         args['extid'] = request.args.get('extid')
 

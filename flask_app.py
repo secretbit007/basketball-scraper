@@ -45,13 +45,13 @@ def get_data():
     elif args['source'] == 'NAIA_PRESTO':
         if args['lpar'] == 'NAIA':
             return func_naia(args)
+    elif args['source'] == 'ESPN':
+        if args['lpar'] == 'NCAA' or args['lpar'] == 'NBA' or args['lpar'] == 'G':
+            return func_nba_ncaa_g(args)
 
     # Euroleague & Eurocup
     if args["lpar"] == 'E' or args["lpar"] == 'U':
         return func_euroleague_eurocup(args)
-    # NBA & NCAA
-    elif args["lpar"] == 'NBA' or args['lpar'] == 'G' or args['lpar'] == 'NCAA':
-        return func_nba_ncaa_g(args)
     # Italy Season A & A2
     elif args["lpar"] == 'SerieA1':
         return func_italy_a1(args)

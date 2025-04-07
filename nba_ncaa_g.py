@@ -21,7 +21,7 @@ def get_schedule(lpar, season):
         data = response.json()
         startDate = datetime.strptime(data['seasonList'][season]['startDate'], '%Y-%m-%dT%H:%MZ')
         endDate = datetime.strptime(data['seasonList'][season]['endDate'], '%Y-%m-%dT%H:%MZ')
-        daylist = [startDate + timedelta(days=delta) for delta in range((endDate - startDate).days)]
+        daylist = [startDate + timedelta(days=delta) for delta in range((endDate - startDate).days + 1)]
 
         def get_info(day: datetime):
             if lpar == 'NBA':

@@ -24,7 +24,6 @@ def get_schedule(lpar, season):
         daylist = [startDate + timedelta(days=delta) for delta in range((endDate - startDate).days)]
 
         def get_info(day: datetime):
-            print(day)
             if lpar == 'NBA':
                 response = requests.get(f'https://www.espn.com/nba/schedule/_/date/{day.strftime("%Y%m%d")}?_xhr=pageContent&original=date%3D{day.strftime("%Y%m%d")}&date={day.strftime("%Y%m%d")}', headers=headers)
             elif lpar == 'G':
@@ -87,11 +86,8 @@ def get_schedule(lpar, season):
                         game['extid'] = event['id']
                         games.append(game)
         
-        # with ThreadPoolExecutor(max_workers=20) as executor:
-        #     executor.map(get_info, daylist)
-
-        for day in daylist:
-            get_info(day)
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            executor.map(get_info, daylist)
 
         return json.dumps(games, indent=4)
     else:

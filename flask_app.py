@@ -45,8 +45,8 @@ def get_data():
     elif args['source'] == 'NAIA_PRESTO':
         if args['lpar'] == 'NAIA':
             return func_naia(args)
-    elif args['source'] == 'ESPN':
-        if args['lpar'] == 'NCAA' or args['lpar'] == 'NBA' or args['lpar'] == 'G':
+    elif args['source'] == 'NCAA_ESPN':
+        if args['lpar'] == 'NCAA':
             return func_nba_ncaa_g(args)
 
     # Euroleague & Eurocup
@@ -71,6 +71,10 @@ def get_data():
         return func_vtb(args)
     elif args["lpar"] == 'KZS':
         return func_kzs(args)
+    elif args['lpar'] == 'NBA':
+        return func_nba_ncaa_g(args)
+    elif args['lpar'] == 'G':
+        return func_nba_ncaa_g(args)
     elif args['lpar'] == "NBL":
         return func_nbl(args)
     elif args['lpar'] == "KOS":

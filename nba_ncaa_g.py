@@ -99,7 +99,7 @@ def func_nba_ncaa_g(args):
         args['season'] = request.args.get('season')
         args['season'] = str(int(args['season']) + 1)
 
-        return get_schedule(args['lpar'])
+        return get_schedule(args['lpar'], args['season'])
     elif args['f'] == 'game':
         args['extid'] = request.args.get('extid')
 

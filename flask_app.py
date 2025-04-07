@@ -34,7 +34,14 @@ def get_data():
     args['extid'] = request.args.get('extid')
 
     if args['source'] == 'FIBA_Livesco':
-        return func_blg(args)
+        if args['lpar'] == 'BLG':
+            return func_blg(args)
+        elif args['lpar'] == "ESAKE":
+            return func_fiba(args)
+        elif args["lpar"] == "FUBB":
+            return func_fiba(args)
+        elif args['lpar'] == "BIH":
+            return func_fiba(args)
     elif args['source'] == 'NAIA_PRESTO':
         if args['lpar'] == 'NAIA':
             return func_naia(args)
@@ -64,14 +71,8 @@ def get_data():
         return func_vtb(args)
     elif args["lpar"] == 'KZS':
         return func_kzs(args)
-    elif args["lpar"] == "FUBB":
-        return func_fiba(args)
-    elif args['lpar'] == "BIH":
-        return func_fiba(args)
     elif args['lpar'] == "NBL":
         return func_nbl(args)
-    elif args['lpar'] == "ESAKE":
-        return func_fiba(args)
     elif args['lpar'] == "KOS":
         return func_kos(args)
     elif args['lpar'] == "CBFFE":

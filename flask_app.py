@@ -34,14 +34,14 @@ def get_data():
     args['extid'] = request.args.get('extid')
 
     if args['source'] == 'FIBA_Livesco':
-        if args['lpar'] == 'JPN' or args['lpar'] == 'BLG':
-            return func_blg(args)
-        elif args['lpar'] == "ESAKE":
+        if args['lpar'] == "ESAKE":
             return func_fiba(args)
         elif args["lpar"] == "FUBB":
             return func_fiba(args)
         elif args['lpar'] == "BIH":
             return func_fiba(args)
+        else:
+            return func_blg(args)
     elif args['source'] == 'NAIA_PRESTO':
         if args['lpar'] == 'NAIA':
             return func_naia(args)

@@ -34,7 +34,7 @@ def get_data():
     args['extid'] = request.args.get('extid')
 
     if args['source'] == 'FIBA_Livesco':
-        if args['lpar'] == 'BLG':
+        if args['lpar'] == 'JPN' or args['lpar'] == 'BLG':
             return func_blg(args)
         elif args['lpar'] == "ESAKE":
             return func_fiba(args)

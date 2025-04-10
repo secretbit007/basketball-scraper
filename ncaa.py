@@ -225,10 +225,21 @@ def get_schedule(season, seasonDivisionID, sportCode):
     return json.dumps(games, indent=4)
 
 def get_boxscore(extid):
+    proxies = {
+        'http': 'http://p.webshare.io:9999',
+        'https': 'http://p.webshare.io:9999'
+    }
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
     }
-    response = requests.get(f'https://stats.ncaa.org/contests/{extid}/individual_stats', headers=headers)
+
+    while True:
+        try:
+            response = requests.get(f'https://stats.ncaa.org/contests/{extid}/individual_stats', headers=headers, proxies=proxies)
+            response.raise_for_status()
+            break
+        except:
+            continue
     
     info = {}
 

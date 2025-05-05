@@ -252,7 +252,7 @@ def func_italy_a2(args):
     a2_resp = requests.get('https://www.legapallacanestro.com/serie-a2')
     a2_soup = BeautifulSoup(a2_resp.text, 'html.parser')
     select_round = a2_soup.find('select', attrs={'name': 'round'})
-    round = len(select_round.find_all('option'))
+    rounds = len(select_round.find_all('option'))
 
     # Get schedule
     if args['f'] == 'schedule':
@@ -362,7 +362,7 @@ def func_italy_a2(args):
                     games.append(game)
 
         def get_playout_schedule(league: str):
-            for round in range(1, round + 1):
+            for round in range(1, rounds + 1):
                 response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round={round}')
 
                 if response.status_code == 200:
@@ -944,3 +944,5 @@ def func_italy_b(args):
         return {'error': 'Something went wrong!'}
     else:
         return {'error': 'Something went wrong!'}
+    
+func_italy_a2({'f': 'schedule', 'lpar': 'SerieA2', 'season': '2024'})

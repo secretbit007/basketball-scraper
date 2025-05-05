@@ -11,7 +11,11 @@ def func_italy_a1(args):
     if args['f'] == 'schedule':
         args['season'] = request.args.get('season')
 
-        response = requests.get(f'https://api-lba.procne.cloud/api/v1/championships?s={args["season"]}&cs_id=1&items=1000', headers=headers)
+        while True:
+            response = requests.get(f'https://api-lba.procne.cloud/api/v1/championships?s={args["season"]}&cs_id=1&items=1000', headers=headers)
+
+            if response.status_code == 200:
+                break
 
         if response.status_code == 200:
             data = response.json()

@@ -617,11 +617,19 @@ def func_italy_b(args):
     if args['f'] == 'schedule':
         args['season'] = request.args.get('season')
         year = f"x{args['season'][-2:]}{str(int(args['season']) + 1)[-2:]}"
+
+        cal_resp = requests.get('https://www.legapallacanestro.com/serie/4/calendario')
+        cal_soup = BeautifulSoup(cal_resp.text, 'html.parser')
+        script = cal_soup.find('script', attrs={'src': None})
+        calendario = json.loads(script.text.replace('jQuery.extend(Drupal.settings, ', '')[:-2])['calendario']
+        leauges = list(calendario.keys())
         
         games = []
 
         def get_schedule(league: str):
-            for round in range(1, 35):
+            rounds = list(calendario[league]['round_options'])
+
+            for round in rounds:
                 response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round={round}')
 
                 if response.status_code == 200:
@@ -668,7 +676,10 @@ def func_italy_b(args):
             response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round=all&pl=ply')
 
             if response.status_code == 200:
-                data = response.json()
+                try:
+                    data = response.json()
+                except:
+                    return
 
                 for item in data:
                     game = {}
@@ -707,14 +718,9 @@ def func_italy_b(args):
 
                     games.append(game)
         
-        get_schedule('ita3_a')
-        get_schedule('ita3_b')
-        get_schedule('ita3_c')
-        get_schedule('ita3_d')
-        get_playoff_schedule('ita3_a')
-        get_playoff_schedule('ita3_b')
-        get_playoff_schedule('ita3_c')
-        get_playoff_schedule('ita3_d')
+        for league in leauges:
+            get_schedule(league)
+            get_playoff_schedule(league)
 
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

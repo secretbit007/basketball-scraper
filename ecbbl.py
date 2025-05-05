@@ -187,7 +187,12 @@ def get_boxscore(extid):
             item['Defensive rebounds'] = player['defensiveRebounds']
             item['FT Attempts'] = player['freeThrowsAttempted']
             item['FT Made'] = player['freeThrowsMade']
-            item['Minutes played'] = round(player['secondsPlayed'] / 60)
+
+            if player['secondsPlayed'] is None:
+                item['Minutes played'] = 0
+            else:
+                item['Minutes played'] = round(player['secondsPlayed'] / 60)
+
             item['Offensive rebounds'] = player['offensiveRebounds']
             item['Personal fouls'] = player['foulsCommitted']
             item['Points'] = player['points']
@@ -237,7 +242,12 @@ def get_boxscore(extid):
             item['Defensive rebounds'] = player['defensiveRebounds']
             item['FT Attempts'] = player['freeThrowsAttempted']
             item['FT Made'] = player['freeThrowsMade']
-            item['Minutes played'] = round(player['secondsPlayed'] / 60)
+
+            if player['secondsPlayed'] is None:
+                item['Minutes played'] = 0
+            else:
+                item['Minutes played'] = round(player['secondsPlayed'] / 60)
+
             item['Offensive rebounds'] = player['offensiveRebounds']
             item['Personal fouls'] = player['foulsCommitted']
             item['Points'] = player['points']

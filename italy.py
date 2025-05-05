@@ -944,5 +944,3 @@ def func_italy_b(args):
         return {'error': 'Something went wrong!'}
     else:
         return {'error': 'Something went wrong!'}
-    
-func_italy_a2({'f': 'schedule', 'lpar': 'SerieA2', 'season': '2024'})

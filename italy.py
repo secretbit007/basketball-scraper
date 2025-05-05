@@ -249,9 +249,14 @@ def func_italy_a1(args):
         return {'error': 'Something went wrong!'}
 
 def func_italy_a2(args):
+    a2_resp = requests.get('https://www.legapallacanestro.com/serie-a2')
+    a2_soup = BeautifulSoup(a2_resp.text, 'html.parser')
+    select_round = a2_soup.find('select', attrs={'name': 'round'})
+    round = len(select_round.find_all('option'))
+
     # Get schedule
     if args['f'] == 'schedule':
-        args['season'] = request.args.get('season')
+        args['season'] = args.get('season')
         year = f"x{args['season'][-2:]}{str(int(args['season']) + 1)[-2:]}"
         
         games = []
@@ -266,7 +271,11 @@ def func_italy_a2(args):
             resp = requests.post(url, headers=headers, data=payload)
 
             if resp.status_code == 200:
-                data = resp.json()
+                try:
+                    data = resp.json()
+                except:
+                    return
+                
                 html = data[1]['data']
                 soup = BeautifulSoup(html, 'html.parser')
                 table = soup.find('table', class_='table')
@@ -310,7 +319,10 @@ def func_italy_a2(args):
             response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round=all&pl=ply')
 
             if response.status_code == 200:
-                data = response.json()
+                try:
+                    data = response.json()
+                except:
+                    return
 
                 for item in data:
                     game = {}
@@ -350,11 +362,14 @@ def func_italy_a2(args):
                     games.append(game)
 
         def get_playout_schedule(league: str):
-            for round in range(1, 11):
+            for round in range(1, round + 1):
                 response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round={round}')
 
                 if response.status_code == 200:
-                    data = response.json()
+                    try:
+                        data = response.json()
+                    except:
+                        continue
 
                     for item in data:
                         game = {}

@@ -1,21 +1,14 @@
 from library import *
 
 def func_italy_a1(args):
-    response = requests.get('https://www.legabasket.it/api/oauth')
-    token = response.json()['data']['token']
-    
     headers = {
-        'Authorization': f'Bearer {token}'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
     }
     # Get schedule
     if args['f'] == 'schedule':
         args['season'] = request.args.get('season')
 
-        while True:
-            response = requests.get(f'https://api-lba.procne.cloud/api/v1/championships?s={args["season"]}&cs_id=1&items=1000', headers=headers)
-
-            if response.status_code == 200:
-                break
+        response = requests.get(f'https://www.legabasket.it/api/championships/get-championships?s={args["season"]}&cs_id=1&items=1000', headers=headers)
 
         if response.status_code == 200:
             data = response.json()
@@ -26,14 +19,14 @@ def func_italy_a1(args):
                     competition_id = competition['id']
                     break
 
-            response = requests.get(f'https://api-lba.procne.cloud/api/v1/championships/{competition_id}/calendar', headers=headers)
+            response = requests.get(f'https://www.legabasket.it/api/championships/get-championships-calendar-by-id?id={competition_id}', headers=headers)
 
             if response.status_code == 200:
                 data = response.json()
                 games = []
 
                 for day in data['filters']['days']:
-                    response = requests.get(f'https://api-lba.procne.cloud/api/v1/championships/{competition_id}/calendar?d={day["code"]}', headers=headers)
+                    response = requests.get(f'https://www.legabasket.it/api/championships/get-championships-calendar-by-id?id={competition_id}&d={day["code"]}', headers=headers)
 
                     if response.status_code == 200:
                         matches = response.json()['matches']
@@ -80,14 +73,14 @@ def func_italy_a1(args):
     elif args['f'] == 'game':
         gameId = request.args.get('extid')
 
-        response = requests.get(f'https://api-lba.procne.cloud/api/v1/championships_matches/{gameId}', headers=headers)
+        response = requests.get(f'https://www.legabasket.it/api/championships/get-championships-matches-by-id?id={gameId}', headers=headers)
 
         if response.status_code == 200:
             data = response.json()
             info = {}
             info['extid'] = gameId
             info['playDate'] = data['match']['match_datetime'].split('T')[0]
-            info['source'] = f'https://www.legabasket.it/game/gameId/'
+            info['source'] = f'https://www.legabasket.it/game/{gameId}/'
             info['type'] = 'Regular Season'
             info['homeTeam'] = {
                 'extid': data['match']['h_team_id'],
@@ -230,7 +223,7 @@ def func_italy_a1(args):
     elif args['f'] == 'player':
         playerId = request.args.get('extid')
 
-        response = requests.get(f'https://api-lba.procne.cloud/api/v1/players/{playerId}?stats=1', headers=headers)
+        response = requests.get(f'https://www.legabasket.it/api/players/get-player-by-id?id={playerId}&stats=true', headers=headers)
 
         if response.status_code == 200:
             data = response.json()

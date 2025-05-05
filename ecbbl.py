@@ -13,14 +13,19 @@ def get_token():
 
 def get_schedule():
     games = []
+
+    headers = {
+        'x-api-key': 'publicWebUser',
+        'x-api-secret': '04d7c56c6ce6a91055bdd1bd0861a85650cb815ec7965c8411c71a4c4b32e862'
+    }
     
-    url_finished = 'https://www.easycredit-bbl.de/backend/api/games?currentPage=1&pageSize=9&gameType=finished'
-    resp_finished = requests.get(url_finished)
+    url_finished = 'https://api.basketball-bundesliga.de/games?currentPage=1&pageSize=9&gameType=finished'
+    resp_finished = requests.get(url_finished, headers=headers)
     total_page_finished = resp_finished.json()['totalPages']
     
     for page_finished in range(1, total_page_finished + 1):
-        url_page_finished = f'https://www.easycredit-bbl.de/backend/api/games?currentPage={page_finished}&pageSize=9&gameType=finished'
-        resp_page_finished = requests.get(url_page_finished)
+        url_page_finished = f'https://api.basketball-bundesliga.de/games?currentPage={page_finished}&pageSize=9&gameType=finished'
+        resp_page_finished = requests.get(url_page_finished, headers=headers)
         
         for match in resp_page_finished.json()['items']:
             game = {}
@@ -54,13 +59,13 @@ def get_schedule():
             game['source'] = f'https://www.easycredit-bbl.de/spiele/{match["id"]}'
             games.append(game)
     
-    url_scheduled = 'https://www.easycredit-bbl.de/backend/api/games?currentPage=1&pageSize=9&gameType=scheduled'
-    resp_scheduled = requests.get(url_scheduled)
+    url_scheduled = 'https://api.basketball-bundesliga.de/games?currentPage=1&pageSize=9&gameType=scheduled'
+    resp_scheduled = requests.get(url_scheduled, headers=headers)
     total_page_scheduled = resp_scheduled.json()['totalPages']
     
     for page_scheduled in range(1, total_page_scheduled + 1):
-        url_page_scheduled = f'https://www.easycredit-bbl.de/backend/api/games?currentPage={page_scheduled}&pageSize=9&gameType=scheduled'
-        resp_page_scheduled = requests.get(url_page_scheduled)
+        url_page_scheduled = f'https://api.basketball-bundesliga.de/games?currentPage={page_scheduled}&pageSize=9&gameType=scheduled'
+        resp_page_scheduled = requests.get(url_page_scheduled, headers=headers)
         
         for match in resp_page_scheduled.json()['items']:
             game = {}

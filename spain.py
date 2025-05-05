@@ -371,7 +371,8 @@ def func_lebplata(args):
             soup = BeautifulSoup(response.text, 'html.parser')
 
             headers = {
-                'Authorization': f"Bearer {soup.find('input', id='_ctl0_token')['value']}"
+                'Authorization': f"Bearer {soup.find('input', id='_ctl0_token')['value']}",
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
             }
         else:
             return {'error': 'Something went wrong!'}

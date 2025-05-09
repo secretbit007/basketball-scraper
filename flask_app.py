@@ -34,12 +34,18 @@ def get_data():
     args['extid'] = request.args.get('extid')
 
     if args['source'] == 'FIBA_Livesco':
+        if args['lpar'] == 'NBL':
+            return func_nbl(args)
+        if args['lpar'] == 'CBFFE':
+            return func_cbffe(args)
         if args['lpar'] == "ESAKE":
             return func_fiba(args)
         elif args["lpar"] == "FUBB":
             return func_fiba(args)
         elif args['lpar'] == "BIH":
             return func_fiba(args)
+        elif args['lpar'] == 'KOS':
+            return func_kos(args)
         else:
             return func_blg(args)
     elif args['source'] == 'NAIA_PRESTO':
@@ -48,6 +54,15 @@ def get_data():
     elif args['source'] == 'NCAA_ESPN':
         if args['lpar'] == 'NCAA':
             return func_nba_ncaa_g(args)
+    elif args['source'] == 'SLO_KZS':
+        if args['lpar'] == 'KZA':
+            return func_kzs(args)
+    elif args['source'] == 'KLS':
+        if args['lpar'] == 'KLS':
+            return func_kls(args)
+    elif args['source'] == 'FPB':
+        if args['lpar'] == 'FPB':
+            return func_fpb(args)
 
     # Euroleague & Eurocup
     if args["lpar"] == 'E' or args["lpar"] == 'U':
@@ -63,32 +78,20 @@ def get_data():
         return func_leboro(args)
     elif args["lpar"] == 'LEBPLATA':
         return func_lebplata(args)
-    elif args["lpar"] == 'KLS':
-        return func_kls(args)
     elif args["lpar"] == "CANCIS":
         return func_cancis(args)
     elif args["lpar"] == "VTB":
         return func_vtb(args)
-    elif args["lpar"] == 'KZS':
-        return func_kzs(args)
     elif args['lpar'] == 'NBA':
         return func_nba_ncaa_g(args)
     elif args['lpar'] == 'G':
         return func_nba_ncaa_g(args)
-    elif args['lpar'] == "NBL":
-        return func_nbl(args)
-    elif args['lpar'] == "KOS":
-        return func_kos(args)
-    elif args['lpar'] == "CBFFE":
-        return func_cbffe(args)
     elif args['lpar'] == "SBF":
         return func_sbf(args)
     elif args['lpar'] == "ECBBL":
         return func_ecbbl(args)
     elif args['lpar'] == 'BNXT':
         return func_bnxt(args)
-    elif args['lpar'] == 'FPB':
-        return func_fpb(args)
     elif args['lpar'] == 'NCAAD3':
         return func_ncaa(args, 'D-III')
     elif args['lpar'] == 'NCAAD2':

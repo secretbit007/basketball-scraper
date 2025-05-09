@@ -264,3 +264,5 @@ def func_cbffe(args):
         extid = request.args.get('extid')
         
         return get_boxscore(extid)
+    elif args['f'] == 'player':
+        return {'error': 'No player data existed!'}

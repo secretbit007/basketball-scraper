@@ -286,3 +286,6 @@ def func_fiba(args):
         extid = request.args.get('extid')
         
         return get_boxscore(args['lpar'], extid)
+    elif args['f'] == 'player':
+        return {'error': 'No player data existed!'}
+    

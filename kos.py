@@ -50,10 +50,10 @@ def romanToDecimal(str):
  
     return res
 
-def get_schedule():
+def get_schedule(args):
     games = []
     
-    url_rounds = 'https://www.basketbolli.com/Results?leagueId=93'
+    url_rounds = f'https://www.basketbolli.com/Results?leagueId={args["spar"]}'
     resp_rounds = requests.get(url_rounds)
     soup_rounds = BeautifulSoup(resp_rounds.text, 'html.parser')
     rounds = soup_rounds.find_all('table', 'table-rez')
@@ -316,7 +316,7 @@ def func_kos(args):
     if args['f'] == 'schedule':
         args['season'] = request.args.get('season')
         
-        games = get_schedule()
+        games = get_schedule(args)
 
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

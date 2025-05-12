@@ -53,7 +53,7 @@ def romanToDecimal(str):
 def get_schedule():
     games = []
     
-    url_rounds = 'https://www.basketbolli.com/Results?leagueId=62'
+    url_rounds = 'https://www.basketbolli.com/Results?leagueId=93'
     resp_rounds = requests.get(url_rounds)
     soup_rounds = BeautifulSoup(resp_rounds.text, 'html.parser')
     rounds = soup_rounds.find_all('table', 'table-rez')

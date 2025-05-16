@@ -139,7 +139,7 @@ def func_kls(args):
                     else:
                         stat['player_extid'] = f"{player.find_all('td')[0].text.split(' ')[0]}_kk-{slugify(info['homeTeam']['name'])}"
 
-                    playerName = re.search('\s[\s\w]+$', player.find_all('td')[0].text).group(0).strip()
+                    playerName = re.search(r'\s[\s\w]+$', player.find_all('td')[0].text).group(0).strip()
                     stat['player_firstname'] = playerName.split(' ')[-1]
                     stat['player_lastname'] = ' '.join(reversed(playerName.split(' ')[:-1]))
                     stat['player_name'] = f"{stat['player_firstname']} {stat['player_lastname']}"
@@ -193,7 +193,7 @@ def func_kls(args):
                     else:
                         stat['player_extid'] = f"{player.find_all('td')[0].text.split(' ')[0]}_kk-{slugify(info['visitorTeam']['name'])}"
 
-                    playerName = re.search('\s[\s\w]+$', player.find_all('td')[0].text).group(0).strip()
+                    playerName = re.search(r'\s[\s\w]+$', player.find_all('td')[0].text).group(0).strip()
                     stat['player_firstname'] = playerName.split(' ')[-1]
                     stat['player_lastname'] = ' '.join(reversed(playerName.split(' ')[:-1]))
                     stat['player_name'] = f"{stat['player_firstname']} {stat['player_lastname']}"
@@ -267,10 +267,10 @@ def func_kls(args):
                     
                     for row in rowsInfo:
                         if 'Godište:' in row:
-                            yearOfBirth = re.search('\d+', row.split(':')[1]).group(0)
+                            yearOfBirth = re.search(r'\d+', row.split(':')[1]).group(0)
 
                         if 'Visina:' in row:
-                            info['height'] = int(re.search('\d+', row.split(':')[1]).group(0))
+                            info['height'] = int(re.search(r'\d+', row.split(':')[1]).group(0))
 
                         if 'Pozicija' in row:
                             info['position'] = row.split(':')[1].strip()
@@ -280,4 +280,4 @@ def func_kls(args):
 
                     return info
 
-                        
+        return {'error': 'No player data!'}

@@ -1,6 +1,6 @@
 from library import *
 
-def get_schedule():
+def get_schedule(spar):
     games = []
     locale.setlocale(locale.LC_ALL, 'pt_PT.utf8')
     
@@ -12,7 +12,7 @@ def get_schedule():
     
     # Results
     while True:
-        url_results = f"https://www.fpb.pt/wp-admin/admin-ajax.php?action=get_results&competicao[]=9861&period[time_option]=loadmore&period[from_date]={from_date.strftime('%Y/%m/%d')}&period[to_date]={to_date.strftime('%Y/%m/%d')}"
+        url_results = f"https://www.fpb.pt/wp-admin/admin-ajax.php?action=get_results&competicao[]={spar}&period[time_option]=loadmore&period[from_date]={from_date.strftime('%Y/%m/%d')}&period[to_date]={to_date.strftime('%Y/%m/%d')}"
         resp_results = requests.get(url_results)
         results = resp_results.json()['result']
         
@@ -392,7 +392,7 @@ def get_player(param):
 
 def func_fpb(args):
     if args['f'] == 'schedule':
-        games = get_schedule()
+        games = get_schedule(args['spar'])
         
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

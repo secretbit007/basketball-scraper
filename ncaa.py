@@ -435,6 +435,7 @@ def func_ncaa(args, seasonDivisionID):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
         }
         response = requests.get(f'https://stats.ncaa.org/teams/{team}/roster', headers=headers)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', response)
 
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')

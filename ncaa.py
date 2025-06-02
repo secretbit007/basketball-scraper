@@ -111,7 +111,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 teamObj = rows[3].find_all('td')[1].find('a')
                                 
                                 if teamObj:
-                                    game['homeTeam']['extid'] = teamObj.get('href').split('/')[-1]
+                                    game['homeTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
                                 else:
                                     # game['homeTeam']['extid'] = '-'
                                     continue
@@ -128,7 +128,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 teamObj = rows[2].find_all('td')[1].find('a')
                                 
                                 if teamObj:
-                                    game['visitorTeam']['extid'] = teamObj.get('href').split('/')[-1]
+                                    game['visitorTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
                                 else:
                                     # game['visitorTeam']['extid'] = '-'
                                     continue
@@ -167,7 +167,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 teamObj = rows[2].find_all('td')[1].find('a')
                                 
                                 if teamObj:
-                                    game['homeTeam']['extid'] = teamObj.get('href').split('/')[-1]
+                                    game['homeTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
                                 else:
                                     # game['homeTeam']['extid'] = '-'
                                     continue
@@ -184,7 +184,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 teamObj = rows[1].find_all('td')[1].find('a')
                                 
                                 if teamObj:
-                                    game['visitorTeam']['extid'] = teamObj.get('href').split('/')[-1]
+                                    game['visitorTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
                                 else:
                                     # game['visitorTeam']['extid'] = '-'
                                     continue
@@ -263,7 +263,7 @@ def get_boxscore(extid):
         teamLinkObj = tables[0].tr.td.find_next_siblings('td')[5].find('a')
         
         if teamLinkObj:
-            info['homeTeam']['extid'] = teamLinkObj.get('href').split('/')[-1]
+            info['homeTeam']['extid'] = teamLinkObj.find('img').get('src').split('/')[-1].split('.')[0]
         else:
             info['homeTeam']['extid'] = '-'
             
@@ -334,7 +334,7 @@ def get_boxscore(extid):
         teamLinkObj = tables[0].tr.td.find_next_siblings('td')[0].find('a')
         
         if teamLinkObj:
-            info['visitorTeam']['extid'] = teamLinkObj.get('href').split('/')[-1]
+            info['visitorTeam']['extid'] = teamLinkObj.find('img').get('src').split('/')[-1].split('.')[0]
         else:
             info['visitorTeam']['extid'] = '-'
             

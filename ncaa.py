@@ -275,7 +275,10 @@ def get_boxscore(extid):
         teamLinkObj = tables[0].tr.td.find_next_siblings('td')[5].find('a')
         
         if teamLinkObj:
-            info['homeTeam']['extid'] = teamLinkObj.find('img').get('src').split('/')[-1].split('.')[0]
+            try:
+                info['homeTeam']['extid'] = teamLinkObj.find('img').get('src').split('/')[-1].split('.')[0]
+            except:
+                info['homeTeam']['extid'] = '-'
         else:
             info['homeTeam']['extid'] = '-'
             
@@ -346,7 +349,10 @@ def get_boxscore(extid):
         teamLinkObj = tables[0].tr.td.find_next_siblings('td')[0].find('a')
         
         if teamLinkObj:
-            info['visitorTeam']['extid'] = teamLinkObj.find('img').get('src').split('/')[-1].split('.')[0]
+            try:
+                info['visitorTeam']['extid'] = teamLinkObj.find('img').get('src').split('/')[-1].split('.')[0]
+            except:
+                info['visitorTeam']['extid'] = '-'
         else:
             info['visitorTeam']['extid'] = '-'
             

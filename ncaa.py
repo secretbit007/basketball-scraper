@@ -82,7 +82,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                     if response.status_code == 200:
                         soup = BeautifulSoup(response.text, 'html.parser')
                         matches: List[Tag] = soup.find_all('div', class_='card-body')[1:]
-                
+
                         for match in matches:
                             table = match.find('table')
                             rows = table.find_all('tr', recursive=False)
@@ -108,7 +108,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 if game['homeTeam']['name'][0] == '#':
                                     game['homeTeam']['name'] = ' '.join(game['homeTeam']['name'].split(' ')[1:])
                                 
-                                teamObj = rows[3].find_all('td')[1].find('a')
+                                teamObj = rows[3].find_all('td')[0]
                                 
                                 if teamObj:
                                     game['homeTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
@@ -125,7 +125,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 if game['visitorTeam']['name'][0] == '#':
                                     game['visitorTeam']['name'] = ' '.join(game['visitorTeam']['name'].split(' ')[1:])
                                 
-                                teamObj = rows[2].find_all('td')[1].find('a')
+                                teamObj = rows[2].find_all('td')[0]
                                 
                                 if teamObj:
                                     game['visitorTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
@@ -164,7 +164,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 if game['homeTeam']['name'][0] == '#':
                                     game['homeTeam']['name'] = ' '.join(game['homeTeam']['name'].split(' ')[1:])
                                 
-                                teamObj = rows[2].find_all('td')[1].find('a')
+                                teamObj = rows[2].find_all('td')[0]
                                 
                                 if teamObj:
                                     game['homeTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
@@ -181,7 +181,7 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 if game['visitorTeam']['name'][0] == '#':
                                     game['visitorTeam']['name'] = ' '.join(game['visitorTeam']['name'].split(' ')[1:])
                                 
-                                teamObj = rows[1].find_all('td')[1].find('a')
+                                teamObj = rows[1].find_all('td')[0]
                                 
                                 if teamObj:
                                     game['visitorTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]

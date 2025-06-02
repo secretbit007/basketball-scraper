@@ -269,10 +269,10 @@ def get_boxscore(extid):
         visitorTeam = tables[-2]
 
         info['homeTeam'] = {
-            'name': tables[0].tr.td.find_next_siblings('td')[5].text.strip()
+            'name': tables[0].tr.td.find_next_siblings('td')[5].find('a').text.strip()
         }
         
-        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[5]
+        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[4]
         
         if teamLinkObj:
             try:
@@ -343,10 +343,10 @@ def get_boxscore(extid):
         info['stats'].append(stat)
         
         info['visitorTeam'] = {
-            'name': tables[0].tr.td.find_next_siblings('td')[0].text.strip()
+            'name': tables[0].tr.td.find_next_siblings('td')[0].find('a').text.strip()
         }
         
-        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[0]
+        teamLinkObj = tables[0].tr.td
         
         if teamLinkObj:
             try:

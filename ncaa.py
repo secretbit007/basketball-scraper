@@ -436,23 +436,26 @@ def func_ncaa(args, seasonDivisionID):
         info['firstname'] = name.split(' ')[0]
         info['lastname'] = name.split(' ')[1]
         
-        headers = {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
-        }
-        response = requests.get(f'https://stats.ncaa.org/teams/{team}/roster', headers=headers, proxies=proxies)
+        for _ in range(5):
+            headers = {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
+            }
+            response = requests.get(f'https://stats.ncaa.org/teams/{team}/roster', headers=headers, proxies=proxies)
 
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            playerTable = soup.find_all('table')[-1]
-            playerRows = playerTable.tbody.find_all('tr')
-            
-            for playerRow in playerRows:
-                playerCells = playerRow.find_all('td')
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                playerTable = soup.find_all('table')[-1]
+                playerRows = playerTable.tbody.find_all('tr')
                 
-                if playerCells[3].text == name:
-                    info['nationality'] = playerCells[7].text
-                    info['height'] = playerCells[6].text
-                    info['position'] = playerCells[5].text
+                for playerRow in playerRows:
+                    playerCells = playerRow.find_all('td')
+                    
+                    if playerCells[3].text == name:
+                        info['nationality'] = playerCells[7].text
+                        info['height'] = playerCells[6].text
+                        info['position'] = playerCells[5].text
+
+                break
 
         return info

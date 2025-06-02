@@ -167,7 +167,10 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 teamObj = rows[2].find_all('td')[0]
                                 
                                 if teamObj:
-                                    game['homeTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
+                                    try:
+                                        game['homeTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
+                                    except:
+                                        continue
                                 else:
                                     # game['homeTeam']['extid'] = '-'
                                     continue
@@ -184,7 +187,10 @@ def get_schedule(season, seasonDivisionID, sportCode):
                                 teamObj = rows[1].find_all('td')[0]
                                 
                                 if teamObj:
-                                    game['visitorTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
+                                    try:
+                                        game['visitorTeam']['extid'] = teamObj.find('img').get('src').split('/')[-1].split('.')[0]
+                                    except:
+                                        continue
                                 else:
                                     # game['visitorTeam']['extid'] = '-'
                                     continue

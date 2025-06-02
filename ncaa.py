@@ -272,7 +272,7 @@ def get_boxscore(extid):
             'name': tables[0].tr.td.find_next_siblings('td')[5].text.strip()
         }
         
-        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[5].find('a')
+        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[5]
         
         if teamLinkObj:
             try:
@@ -346,7 +346,7 @@ def get_boxscore(extid):
             'name': tables[0].tr.td.find_next_siblings('td')[0].text.strip()
         }
         
-        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[0].find('a')
+        teamLinkObj = tables[0].tr.td.find_next_siblings('td')[0]
         
         if teamLinkObj:
             try:

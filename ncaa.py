@@ -236,6 +236,14 @@ def get_schedule(season, seasonDivisionID, sportCode):
             
     return json.dumps(games, indent=4)
 
+def get_column_index(table: Tag, column: str) -> int | None:
+    thead = table.find('thead')
+    ths = thead.find_all('th')
+
+    for th in ths:
+        if th.text == column:
+            return ths.index(th)
+
 def get_boxscore(extid):
     proxies = {
         'http': 'http://p.webshare.io:9999',
@@ -293,33 +301,33 @@ def get_boxscore(extid):
             
             stat = {}
             stat['team'] = info['homeTeam']['extid']
-            stat['player_extid'] = f"{cells[1].text.strip()}_{stat['team']}"
-            stat['player_name'] = cells[1].text.strip()
-            stat['player_firstname'] = cells[1].text.split(' ')[0].strip()
-            stat['player_lastname'] = cells[1].text.split(' ')[1].strip()
+            stat['player_extid'] = f"{cells[get_column_index(homeTeam, 'Name')].text.strip()}_{stat['team']}"
+            stat['player_name'] = cells[get_column_index(homeTeam, 'Name')].text.strip()
+            stat['player_firstname'] = cells[get_column_index(homeTeam, 'Name')].text.split(' ')[0].strip()
+            stat['player_lastname'] = cells[get_column_index(homeTeam, 'Name')].text.split(' ')[1].strip()
 
             item = {}
-            item['3pts Attempts'] = cells[7].text
-            item['3pts Made'] = cells[6].text
-            item['2pts Attempts'] = int(cells[5].text) - int(cells[7].text)
-            item['2pts Made'] = int(cells[4].text) - int(cells[6].text)
-            item['Assists'] = cells[14].text
-            item['Block Shots'] = cells[17].text
-            item['Defensive rebounds'] = cells[12].text
-            item['FT Attempts'] = cells[9].text
-            item['FT Made'] = cells[8].text
+            item['3pts Attempts'] = cells[get_column_index(homeTeam, '3FGA')].text
+            item['3pts Made'] = cells[get_column_index(homeTeam, '3FG')].text
+            item['2pts Attempts'] = int(cells[get_column_index(homeTeam, 'FGA')].text) - int(cells[get_column_index(homeTeam, '3FGA')].text)
+            item['2pts Made'] = int(cells[get_column_index(homeTeam, 'FGM')].text) - int(cells[get_column_index(homeTeam, '3FG')].text)
+            item['Assists'] = cells[get_column_index(homeTeam, 'AST')].text
+            item['Block Shots'] = cells[get_column_index(homeTeam, 'BLK')].text
+            item['Defensive rebounds'] = cells[get_column_index(homeTeam, 'DRebs')].text
+            item['FT Attempts'] = cells[get_column_index(homeTeam, 'FTA')].text
+            item['FT Made'] = cells[get_column_index(homeTeam, 'FT')].text
             
             try:
-                item['Minutes played'] = round((datetime.strptime(cells[3].text, '%M:%S').minute * 60 + datetime.strptime(cells[3].text, '%M:%S').second) / 60)
+                item['Minutes played'] = round((datetime.strptime(cells[get_column_index(homeTeam, 'MP')].text, '%M:%S').minute * 60 + datetime.strptime(cells[get_column_index(homeTeam, 'MP')].text, '%M:%S').second) / 60)
             except:
                 item['Minutes played'] = 0
                 
-            item['Offensive rebounds'] = cells[11].text
-            item['Personal fouls'] = cells[18].text
-            item['Points'] = cells[10].text
-            item['Steals'] = cells[16].text
-            item['Total rebounds'] = cells[13].text
-            item['Turnovers'] = cells[15].text
+            item['Offensive rebounds'] = cells[get_column_index(homeTeam, 'ORebs')].text
+            item['Personal fouls'] = cells[get_column_index(homeTeam, 'Fouls')].text
+            item['Points'] = cells[get_column_index(homeTeam, 'PTS')].text
+            item['Steals'] = cells[get_column_index(homeTeam, 'STL')].text
+            item['Total rebounds'] = cells[get_column_index(homeTeam, 'TotReb')].text
+            item['Turnovers'] = cells[get_column_index(homeTeam, 'TO')].text
 
             stat['items'] = item
             info['stats'].append(stat)
@@ -333,11 +341,11 @@ def get_boxscore(extid):
         
         teamCells = homeTeam.find('tbody').find_all('tr', recursive=False)[-2].find_all('td')
         item = {}
-        item['Total rebounds'] = teamCells[13].text
-        item['Defensive rebounds'] = teamCells[12].text
-        item['Offensive rebounds'] = teamCells[11].text
-        item['Steals'] = teamCells[16].text
-        item['Turnovers'] = teamCells[15].text
+        item['Total rebounds'] = teamCells[get_column_index(homeTeam, 'TotReb')].text
+        item['Defensive rebounds'] = teamCells[get_column_index(homeTeam, 'DRebs')].text
+        item['Offensive rebounds'] = teamCells[get_column_index(homeTeam, 'ORebs')].text
+        item['Steals'] = teamCells[get_column_index(homeTeam, 'STL')].text
+        item['Turnovers'] = teamCells[get_column_index(homeTeam, 'TO')].text
 
         stat['items'] = item
         info['stats'].append(stat)
@@ -367,33 +375,33 @@ def get_boxscore(extid):
             
             stat = {}
             stat['team'] = info['visitorTeam']['extid']
-            stat['player_extid'] = f"{cells[1].text.strip()}_{stat['team']}"
-            stat['player_name'] = cells[1].text.strip()
-            stat['player_firstname'] = cells[1].text.split(' ')[0].strip()
-            stat['player_lastname'] = cells[1].text.split(' ')[1].strip()
+            stat['player_extid'] = f"{cells[get_column_index(visitorTeam, 'Name')].text.strip()}_{stat['team']}"
+            stat['player_name'] = cells[get_column_index(visitorTeam, 'Name')].text.strip()
+            stat['player_firstname'] = cells[get_column_index(visitorTeam, 'Name')].text.split(' ')[0].strip()
+            stat['player_lastname'] = cells[get_column_index(visitorTeam, 'Name')].text.split(' ')[1].strip()
 
             item = {}
-            item['3pts Attempts'] = cells[7].text
-            item['3pts Made'] = cells[6].text
-            item['2pts Attempts'] = int(cells[5].text) - int(cells[7].text)
-            item['2pts Made'] = int(cells[4].text) - int(cells[6].text)
-            item['Assists'] = cells[14].text
-            item['Block Shots'] = cells[17].text
-            item['Defensive rebounds'] = cells[12].text
-            item['FT Attempts'] = cells[9].text
-            item['FT Made'] = cells[8].text
+            item['3pts Attempts'] = cells[get_column_index(visitorTeam, '3FGA')].text
+            item['3pts Made'] = cells[get_column_index(visitorTeam, '3FG')].text
+            item['2pts Attempts'] = int(cells[get_column_index(visitorTeam, 'FGA')].text) - int(cells[get_column_index(homeTeam, '3FGA')].text)
+            item['2pts Made'] = int(cells[get_column_index(visitorTeam, 'FGM')].text) - int(cells[get_column_index(homeTeam, '3FG')].text)
+            item['Assists'] = cells[get_column_index(visitorTeam, 'AST')].text
+            item['Block Shots'] = cells[get_column_index(visitorTeam, 'BLK')].text
+            item['Defensive rebounds'] = cells[get_column_index(visitorTeam, 'DRebs')].text
+            item['FT Attempts'] = cells[get_column_index(visitorTeam, 'FTA')].text
+            item['FT Made'] = cells[get_column_index(visitorTeam, 'FT')].text
             
             try:
-                item['Minutes played'] = round((datetime.strptime(cells[3].text, '%M:%S').minute * 60 + datetime.strptime(cells[3].text, '%M:%S').second) / 60)
+                item['Minutes played'] = round((datetime.strptime(cells[get_column_index(visitorTeam, 'MP')].text, '%M:%S').minute * 60 + datetime.strptime(cells[get_column_index(visitorTeam, 'MP')].text, '%M:%S').second) / 60)
             except:
                 item['Minutes played'] = 0
                 
-            item['Offensive rebounds'] = cells[11].text
-            item['Personal fouls'] = cells[18].text
-            item['Points'] = cells[10].text
-            item['Steals'] = cells[16].text
-            item['Total rebounds'] = cells[13].text
-            item['Turnovers'] = cells[15].text
+            item['Offensive rebounds'] = cells[get_column_index(visitorTeam, 'ORebs')].text
+            item['Personal fouls'] = cells[get_column_index(visitorTeam, 'Fouls')].text
+            item['Points'] = cells[get_column_index(visitorTeam, 'PTS')].text
+            item['Steals'] = cells[get_column_index(visitorTeam, 'STL')].text
+            item['Total rebounds'] = cells[get_column_index(visitorTeam, 'TotReb')].text
+            item['Turnovers'] = cells[get_column_index(visitorTeam, 'TO')].text
 
             stat['items'] = item
             info['stats'].append(stat)
@@ -407,11 +415,11 @@ def get_boxscore(extid):
 
         teamCells = visitorTeam.find('tbody').find_all('tr', recursive=False)[-2].find_all('td')
         item = {}
-        item['Total rebounds'] = teamCells[13].text
-        item['Defensive rebounds'] = teamCells[12].text
-        item['Offensive rebounds'] = teamCells[11].text
-        item['Steals'] = teamCells[16].text
-        item['Turnovers'] = teamCells[15].text
+        item['Total rebounds'] = teamCells[get_column_index(visitorTeam, 'TotReb')].text
+        item['Defensive rebounds'] = teamCells[get_column_index(visitorTeam, 'DRebs')].text
+        item['Offensive rebounds'] = teamCells[get_column_index(visitorTeam, 'ORebs')].text
+        item['Steals'] = teamCells[get_column_index(visitorTeam, 'STL')].text
+        item['Turnovers'] = teamCells[get_column_index(visitorTeam, 'TO')].text
 
         stat['items'] = item
         info['stats'].append(stat)

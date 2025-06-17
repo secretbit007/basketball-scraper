@@ -79,7 +79,7 @@ def func_italy_a1(args):
             info['extid'] = gameId
             info['playDate'] = data['match']['match_datetime'].split('T')[0]
             info['source'] = f'https://www.legabasket.it/game/{gameId}/'
-            info['type'] = 'Regular Season'
+            info['type'] = data['match']['competition_type']
             info['homeTeam'] = {
                 'extid': data['match']['h_team_id'],
                 'name': data['match']['h_team_name']

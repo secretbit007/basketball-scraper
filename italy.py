@@ -24,48 +24,49 @@ def func_italy_a1(args):
                     data = response.json()
 
                     for day in data['filters']['days']:
-                        response = requests.get(f'https://www.legabasket.it/api/championships/get-championships-calendar-by-id?id={competition_id}&d={day["code"]}', headers=headers)
+                        for phase in data['filters']['phases']:
+                            response = requests.get(f'https://www.legabasket.it/api/championships/get-championships-calendar-by-id?id={competition_id}&d={day["code"]}&ph_id={phase["id"]}', headers=headers)
 
-                        if response.status_code == 200:
-                            matches = response.json()['matches']
+                            if response.status_code == 200:
+                                matches = response.json()['matches']
 
-                            if matches:
-                                for match in matches:
-                                    game = {}
-                                    game['competition'] = competition_name
-                                    game['playDate'] = match['match_datetime'].split('T')[0]
-                                    game['round'] = day["code"]
-                                    
-                                    if match['game_status'] == '2':
-                                        game['state'] = 'result'
-                                    elif match['game_status'] == '0':
-                                        game['state'] = 'confirmed'
+                                if matches:
+                                    for match in matches:
+                                        game = {}
+                                        game['competition'] = competition_name
+                                        game['playDate'] = match['match_datetime'].split('T')[0]
+                                        game['round'] = day["code"]
+                                        
+                                        if match['game_status'] == '2':
+                                            game['state'] = 'result'
+                                        elif match['game_status'] == '0':
+                                            game['state'] = 'confirmed'
 
-                                    game['type'] = competition['ctype_name']
-                                    game['homeTeam'] = {
-                                        'extid': match['h_team_id'],
-                                        'name': match['h_team_name']
-                                    }
-
-                                    if game['state'] == 'result':
-                                        game['homeScores'] = {
-                                            'final': match['home_final_score']
+                                        game['type'] = competition['ctype_name']
+                                        game['homeTeam'] = {
+                                            'extid': match['h_team_id'],
+                                            'name': match['h_team_name']
                                         }
 
-                                    game['visitorTeam'] = {
-                                        'extid': match['v_team_id'],
-                                        'name': match['v_team_name']
-                                    }
+                                        if game['state'] == 'result':
+                                            game['homeScores'] = {
+                                                'final': match['home_final_score']
+                                            }
 
-                                    if game['state'] == 'result':
-                                        game['visitorScores'] = {
-                                            'final': match['visitor_final_score']
+                                        game['visitorTeam'] = {
+                                            'extid': match['v_team_id'],
+                                            'name': match['v_team_name']
                                         }
 
-                                    game['extid'] = match['id']
-                                    game['source'] = f'https://www.legabasket.it/game/{match["id"]}/'
+                                        if game['state'] == 'result':
+                                            game['visitorScores'] = {
+                                                'final': match['visitor_final_score']
+                                            }
 
-                                    games.append(game)
+                                        game['extid'] = match['id']
+                                        game['source'] = f'https://www.legabasket.it/game/{match["id"]}/'
+
+                                        games.append(game)
 
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

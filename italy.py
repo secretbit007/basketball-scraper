@@ -260,7 +260,7 @@ def func_italy_a2(args):
         games = []
 
         def get_schedule(league: str):
-            for round in rounds:
+            for round in range(1, rounds + 1):
                 response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round={round}')
 
                 if response.status_code == 200:
@@ -453,7 +453,7 @@ def func_italy_a2(args):
 
                         games.append(game)
         
-        # get_clock_schedule('ita2_clock')
+        get_clock_schedule('ita2_clock')
         get_playoff_schedule('ita2')
         get_playout_schedule('ita2')
         get_schedule('ita2')

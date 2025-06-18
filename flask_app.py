@@ -66,11 +66,12 @@ def get_data():
     elif args['source'] == 'ITA_LBA':
         if args['lpar'] == 'SerieA1':
             return func_italy_a1(args)
+    elif args['source'] == 'ITA_LNP':
+        if args['lpar'] == 'SerieA2':
+            return func_italy_a2(args)
 
     if args["lpar"] == 'E' or args["lpar"] == 'U':
         return func_euroleague_eurocup(args)
-    elif args["lpar"] == 'SerieA2':
-        return func_italy_a2(args)
     elif args["lpar"] == 'SerieB':
         return func_italy_b(args)
     elif args["lpar"] == 'LEBORO':

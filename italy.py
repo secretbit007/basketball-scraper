@@ -259,6 +259,53 @@ def func_italy_a2(args):
         
         games = []
 
+        def get_schedule(league: str):
+            for round in rounds:
+                response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round={round}')
+
+                if response.status_code == 200:
+                    try:
+                        data = response.json()
+                    except:
+                        return
+
+                    for item in data:
+                        game = {}
+                        game['competition'] = 'SEIRE A2'
+                        game['playDate'] = datetime.strptime(item['date'], '%d/%m/%Y').strftime('%Y-%m-%d')
+                        game['round'] = item['round']
+                        
+                        if item['game_status'] == 'finished':
+                            game['state'] = 'result'
+                        else:
+                            game['state'] = 'confirmed'
+
+                        game['type'] = 'Regular Season'
+                        game['homeTeam'] = {
+                            'extid': item['teamid_home'],
+                            'name': item['teamname_home']
+                        }
+
+                        if game['state'] == 'result':
+                            game['homeScores'] = {
+                                'final': item['score_home']
+                            }
+
+                        game['visitorTeam'] = {
+                            'extid': item['teamid_away'],
+                            'name': item['teamname_away']
+                        }
+
+                        if game['state'] == 'result':
+                            game['visitorScores'] = {
+                                'final': item['score_away']
+                            }
+
+                        game['extid'] = f'{item["gameid"]}-{game["homeTeam"]["extid"]}-{game["homeTeam"]["name"].replace("-", "_")}-{game["visitorTeam"]["extid"]}-{game["visitorTeam"]["name"].replace("-", "_")}-{game["playDate"].replace("-", "_")}-{league}'
+                        game['source'] = f'https://www.legapallacanestro.com/wp/match/{item["gameid"]}/{league}/{year}'
+
+                        games.append(game)
+
         def get_clock_schedule(league: str):
             url = 'https://www.legapallacanestro.com/system/ajax'
             headers = {
@@ -333,7 +380,7 @@ def func_italy_a2(args):
                     else:
                         game['state'] = 'confirmed'
 
-                    game['type'] = 'Regular Season'
+                    game['type'] = 'Play Off'
                     game['homeTeam'] = {
                         'extid': item['teamid_home'],
                         'name': item['teamname_home']
@@ -380,7 +427,7 @@ def func_italy_a2(args):
                         else:
                             game['state'] = 'confirmed'
 
-                        game['type'] = 'Regular Season'
+                        game['type'] = 'Play Out'
                         game['homeTeam'] = {
                             'extid': item['teamid_home'],
                             'name': item['teamname_home']
@@ -407,10 +454,9 @@ def func_italy_a2(args):
                         games.append(game)
         
         get_clock_schedule('ita2_clock')
-        get_playoff_schedule('ita2_a')
-        get_playoff_schedule('ita2_b')
-        get_playout_schedule('ita2_2ph')
-        # get_schedule('ita2_a')
+        get_playoff_schedule('ita2')
+        get_playout_schedule('ita2')
+        get_schedule('ita2')
         # get_schedule('ita2_b')
         # get_schedule('ita2_2ph_giallo')
         # get_schedule('ita2_2ph_blu')

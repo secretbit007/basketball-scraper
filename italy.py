@@ -453,7 +453,7 @@ def func_italy_a2(args):
 
                         games.append(game)
         
-        get_clock_schedule('ita2_clock')
+        # get_clock_schedule('ita2_clock')
         get_playoff_schedule('ita2')
         get_playout_schedule('ita2')
         get_schedule('ita2')

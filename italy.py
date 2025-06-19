@@ -319,7 +319,7 @@ def func_italy_a2(args):
                             }
 
                         game['extid'] = f'{item["gameid"]}-{game["homeTeam"]["extid"]}-{game["homeTeam"]["name"].replace("-", "_")}-{game["visitorTeam"]["extid"]}-{game["visitorTeam"]["name"].replace("-", "_")}-{game["playDate"].replace("-", "_")}-{league}'
-                        game['source'] = f'https://www.legapallacanestro.com/wp/match/{item["gameid"]}/{league}/{year}'
+                        game['source'] = f'https://www.legapallacanestro.com/wp/match/{item["gameid"]}/{league.split("_")[0]}/{year}'
 
                         games.append(game)
 
@@ -394,7 +394,7 @@ def func_italy_a2(args):
         args['season'] = request.args.get('season')
         year = f"x{args['season'][-2:]}{str(int(args['season']) + 1)[-2:]}"
         
-        response = requests.get(f'https://www.legapallacanestro.com/wp/match/{args["extid"]}/{args["league"]}/{year}')
+        response = requests.get(f'https://www.legapallacanestro.com/wp/match/{args["extid"]}/{args["league"].split("_")[0]}/{year}')
 
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -415,7 +415,16 @@ def func_italy_a2(args):
                 info['playDate'] = args['playDate'].replace('_', '-')
                 
             info['source'] = response.url
-            info['type'] = 'Regular Season'
+
+            if 'pli' in args['league']:
+                info['type'] = 'Play In'
+            elif 'ply' in args['league']:
+                info['type'] = 'Play Off'
+            elif 'plo' in args['league']:
+                info['type'] = 'Play Out'
+            else:
+                info['type'] = 'Regular Season'
+                
             info['homeTeam'] = {
                 'extid': args['homeTeamId'],
                 'name': args['homeTeamName'].replace('_', '-')

@@ -259,18 +259,14 @@ def func_italy_a2(args):
         
         games = []
 
-        def get_schedule(league: str):
+        def get_schedule(league: str, pl: str):
             round_index = 0
             while True:
-                if 'ply' in league:
-                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split("_")[0]}&pl=ply&round=all')
-                elif 'pli' in league:
-                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split("_")[0]}&pl=pli&round=all')
-                elif 'plo' in league:
-                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split("_")[0]}&pl=plo&round=all')
+                if pl != 'regular':
+                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&pl={pl}&round=all')
                 else:
                     round_index += 1
-                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split("_")[0]}&round={round_index}')
+                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round={round_index}')
 
                 if response.status_code == 200:
                     try:
@@ -289,13 +285,13 @@ def func_italy_a2(args):
                         else:
                             game['state'] = 'confirmed'
 
-                        if 'ply' in league:
+                        if pl == 'ply':
                             game['type'] = 'Play Off'
-                        elif 'pli' in league:
+                        elif pl == 'pli':
                             game['type'] = 'Play In'
-                        elif 'plo' in league:
+                        elif pl == 'plo':
                             game['type'] = 'Play Out'
-                        else:
+                        elif pl == 'regular':
                             game['type'] = 'Regular Season'
                             
                         game['homeTeam'] = {
@@ -318,12 +314,12 @@ def func_italy_a2(args):
                                 'final': item['score_away']
                             }
 
-                        game['extid'] = f'{item["gameid"]}-{game["homeTeam"]["extid"]}-{game["homeTeam"]["name"].replace("-", "_")}-{game["visitorTeam"]["extid"]}-{game["visitorTeam"]["name"].replace("-", "_")}-{game["playDate"].replace("-", "_")}-{league}'
-                        game['source'] = f'https://www.legapallacanestro.com/wp/match/{item["gameid"]}/{league.split("_")[0]}/{year}'
+                        game['extid'] = f'{item["gameid"]}-{game["homeTeam"]["extid"]}-{game["homeTeam"]["name"].replace("-", "_")}-{game["visitorTeam"]["extid"]}-{game["visitorTeam"]["name"].replace("-", "_")}-{game["playDate"].replace("-", "_")}-{league}-{pl}'
+                        game['source'] = f'https://www.legapallacanestro.com/wp/match/{item["gameid"]}/{league}/{year}'
 
                         games.append(game)
 
-                if 'ply' in league or 'pli' in league or 'plo' in league:
+                if pl != 'regular':
                     break
                 elif round_index > rounds:
                     break
@@ -382,19 +378,19 @@ def func_italy_a2(args):
 
                     games.append(game)
 
-        get_schedule('ita2')
-        get_schedule('ita2_ply')
-        get_schedule('ita2_pli')
-        get_schedule('ita2_plo')
+        get_schedule('ita2', 'regular')
+        get_schedule('ita2', 'ply')
+        get_schedule('ita2', 'pli')
+        get_schedule('ita2', 'plo')
         get_clock_schedule('ita2_clock')
 
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':
-        args['extid'], args['homeTeamId'], args['homeTeamName'], args['visitorTeamId'], args['visitorTeamName'], args['playDate'], args['league'] = request.args.get('extid').split('-')
+        args['extid'], args['homeTeamId'], args['homeTeamName'], args['visitorTeamId'], args['visitorTeamName'], args['playDate'], args['league'], args['pl'] = request.args.get('extid').split('-')
         args['season'] = request.args.get('season')
         year = f"x{args['season'][-2:]}{str(int(args['season']) + 1)[-2:]}"
         
-        response = requests.get(f'https://www.legapallacanestro.com/wp/match/{args["extid"]}/{args["league"].split("_")[0]}/{year}')
+        response = requests.get(f'https://www.legapallacanestro.com/wp/match/{args["extid"]}/{args["league"]}/{year}')
 
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -416,11 +412,11 @@ def func_italy_a2(args):
                 
             info['source'] = response.url
 
-            if 'pli' in args['league']:
+            if args['pl'] == 'pli':
                 info['type'] = 'Play In'
-            elif 'ply' in args['league']:
+            elif args['pl'] == 'ply':
                 info['type'] = 'Play Off'
-            elif 'plo' in args['league']:
+            elif args['pl'] == 'plo':
                 info['type'] = 'Play Out'
             else:
                 info['type'] = 'Regular Season'
@@ -606,27 +602,32 @@ def func_italy_a2(args):
         return {'error': 'Something went wrong!'}
 
 def func_italy_b(args):
+    b_resp = requests.get('https://www.legapallacanestro.com/serie/4/calendario')
+    b_soup = BeautifulSoup(b_resp.text, 'html.parser')
+    select_round = b_soup.find('select', attrs={'name': 'round'})
+    rounds = len(select_round.find_all('option'))
+
     # Get schedule
     if args['f'] == 'schedule':
-        args['season'] = request.args.get('season')
+        args['season'] = args.get('season')
         year = f"x{args['season'][-2:]}{str(int(args['season']) + 1)[-2:]}"
-
-        cal_resp = requests.get('https://www.legapallacanestro.com/serie/4/calendario')
-        cal_soup = BeautifulSoup(cal_resp.text, 'html.parser')
-        script = cal_soup.find('script', attrs={'src': None})
-        calendario = json.loads(script.text.replace('jQuery.extend(Drupal.settings, ', '')[:-2])['calendario']
-        leauges = list(calendario.keys())
         
         games = []
 
-        def get_schedule(league: str):
-            rounds = list(calendario[league]['round_options'])
-
-            for round in rounds:
-                response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round={round}')
+        def get_schedule(league: str, pl: str):
+            round_index = 0
+            while True:
+                if pl != 'regular':
+                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&pl={pl}&round=all')
+                else:
+                    round_index += 1
+                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round={round_index}')
 
                 if response.status_code == 200:
-                    data = response.json()
+                    try:
+                        data = response.json()
+                    except:
+                        return
 
                     for item in data:
                         game = {}
@@ -639,7 +640,17 @@ def func_italy_b(args):
                         else:
                             game['state'] = 'confirmed'
 
-                        game['type'] = 'Regular Season'
+                        if 'ply' == pl:
+                            game['type'] = 'Play Off'
+                        elif 'pli' == pl:
+                            game['type'] = 'Play In'
+                        elif 'plo' == pl:
+                            game['type'] = 'Play Out'
+                        elif 'pos3' == pl:
+                            game['type'] = 'Final'
+                        elif 'regular' == pl:
+                            game['type'] = 'Regular Season'
+                            
                         game['homeTeam'] = {
                             'extid': item['teamid_home'],
                             'name': item['teamname_home']
@@ -660,64 +671,29 @@ def func_italy_b(args):
                                 'final': item['score_away']
                             }
 
-                        game['extid'] = f'{item["gameid"]}-{game["homeTeam"]["extid"]}-{game["homeTeam"]["name"].replace("-", "_")}-{game["visitorTeam"]["extid"]}-{game["visitorTeam"]["name"].replace("-", "_")}-{game["playDate"].replace("-", "_")}-{league}'
+                        game['extid'] = f'{item["gameid"]}-{game["homeTeam"]["extid"]}-{game["homeTeam"]["name"].replace("-", "_")}-{game["visitorTeam"]["extid"]}-{game["visitorTeam"]["name"].replace("-", "_")}-{game["playDate"].replace("-", "_")}-{league}-{pl}'
                         game['source'] = f'https://www.legapallacanestro.com/wp/match/{item["gameid"]}/{league}/{year}'
 
                         games.append(game)
 
-        def get_playoff_schedule(league: str):
-            response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league}&round=all&pl=ply')
+                if pl != 'regular':
+                    break
+                elif round_index > rounds:
+                    break
 
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                except:
-                    return
-
-                for item in data:
-                    game = {}
-                    game['competition'] = 'SEIRE B'
-                    game['playDate'] = datetime.strptime(item['date'], '%d/%m/%Y').strftime('%Y-%m-%d')
-                    game['round'] = item['round']
-                    
-                    if item['game_status'] == 'finished':
-                        game['state'] = 'result'
-                    else:
-                        game['state'] = 'confirmed'
-
-                    game['type'] = 'Playoff'
-                    game['homeTeam'] = {
-                        'extid': item['teamid_home'],
-                        'name': item['teamname_home']
-                    }
-
-                    if game['state'] == 'result':
-                        game['homeScores'] = {
-                            'final': item['score_home']
-                        }
-
-                    game['visitorTeam'] = {
-                        'extid': item['teamid_away'],
-                        'name': item['teamname_away']
-                    }
-
-                    if game['state'] == 'result':
-                        game['visitorScores'] = {
-                            'final': item['score_away']
-                        }
-
-                    game['extid'] = f'{item["gameid"]}-{game["homeTeam"]["extid"]}-{game["homeTeam"]["name"].replace("-", "_")}-{game["visitorTeam"]["extid"]}-{game["visitorTeam"]["name"].replace("-", "_")}-{game["playDate"].replace("-", "_")}-{league}'
-                    game['source'] = f'https://www.legapallacanestro.com/wp/match/{item["gameid"]}/{league}/{year}'
-
-                    games.append(game)
-        
-        for league in leauges:
-            get_schedule(league)
-            get_playoff_schedule(league)
+        get_schedule('ita3_a', 'regular')
+        get_schedule('ita3_b', 'regular')
+        get_schedule('ita3_a', 'ply')
+        get_schedule('ita3_b', 'ply')
+        get_schedule('ita3_a', 'pli')
+        get_schedule('ita3_b', 'pli')
+        get_schedule('ita3_a', 'plo')
+        get_schedule('ita3_b', 'plo')
+        get_schedule('ita3', 'pos3')
 
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':
-        args['extid'], args['homeTeamId'], args['homeTeamName'], args['visitorTeamId'], args['visitorTeamName'], args['playDate'], args['league'] = request.args.get('extid').split('-')
+        args['extid'], args['homeTeamId'], args['homeTeamName'], args['visitorTeamId'], args['visitorTeamName'], args['playDate'], args['league'], args['pl'] = request.args.get('extid').split('-')
         args['season'] = request.args.get('season')
         year = f"x{args['season'][-2:]}{str(int(args['season']) + 1)[-2:]}"
         
@@ -742,7 +718,18 @@ def func_italy_b(args):
                 info['playDate'] = args['playDate'].replace('_', '-')
                 
             info['source'] = response.url
-            info['type'] = 'Regular Season'
+
+            if args['pl'] == 'pli':
+                info['type'] = 'Play In'
+            elif args['pl'] == 'plo':
+                info['type'] = 'Play Out'
+            elif args['pl'] == 'ply':
+                info['type'] = 'Play Off'
+            elif args['pl'] == 'pos3':
+                info['type'] = 'Final'
+            elif args['pl'] == 'regular':
+                info['type'] = 'Regular Season'
+
             info['homeTeam'] = {
                 'extid': args['homeTeamId'],
                 'name': args['homeTeamName'].replace('_', '-')

@@ -263,14 +263,14 @@ def func_italy_a2(args):
             round_index = 0
             while True:
                 if 'ply' in league:
-                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split('_')[0]}&pl=ply&round=all')
+                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split("_")[0]}&pl=ply&round=all')
                 elif 'pli' in league:
-                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split('_')[0]}&pl=pli&round=all')
+                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split("_")[0]}&pl=pli&round=all')
                 elif 'plo' in league:
-                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split('_')[0]}&pl=plo&round=all')
+                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split("_")[0]}&pl=plo&round=all')
                 else:
                     round_index += 1
-                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split('_')[0]}&round={round_index}')
+                    response = requests.get(f'https://lnpstat.domino.it/getstatisticsfiles?task=schedule&year={year}&league={league.split("_")[0]}&round={round_index}')
 
                 if response.status_code == 200:
                     try:
@@ -297,7 +297,7 @@ def func_italy_a2(args):
                             game['type'] = 'Play Out'
                         else:
                             game['type'] = 'Regular Season'
-
+                            
                         game['homeTeam'] = {
                             'extid': item['teamid_home'],
                             'name': item['teamname_home']
@@ -323,7 +323,7 @@ def func_italy_a2(args):
 
                         games.append(game)
 
-                if 'ply' in league or 'pli' in league or 'plo' in league:
+                if ('ply' or 'pli' or 'plo') in league:
                     break
                 elif round_index > rounds:
                     break

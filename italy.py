@@ -323,7 +323,7 @@ def func_italy_a2(args):
 
                         games.append(game)
 
-                if ('ply' or 'pli' or 'plo') in league:
+                if 'ply' in league or 'pli' in league or 'plo' in league:
                     break
                 elif round_index > rounds:
                     break

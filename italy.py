@@ -297,7 +297,7 @@ def func_italy_a2(args):
                             game['type'] = 'Play Out'
                         else:
                             game['type'] = 'Regular Season'
-                            
+
                         game['homeTeam'] = {
                             'extid': item['teamid_home'],
                             'name': item['teamname_home']
@@ -323,7 +323,7 @@ def func_italy_a2(args):
 
                         games.append(game)
 
-                if ('ply' or 'pli' or 'plo') in league:
+                if 'ply' in league or 'pli' in league or 'plo' in league:
                     break
                 elif round_index > rounds:
                     break

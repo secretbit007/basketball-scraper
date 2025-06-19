@@ -382,11 +382,11 @@ def func_italy_a2(args):
 
                     games.append(game)
 
-        # get_clock_schedule('ita2_clock')
         get_schedule('ita2')
         get_schedule('ita2_ply')
         get_schedule('ita2_pli')
         get_schedule('ita2_plo')
+        get_clock_schedule('ita2_clock')
 
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':
@@ -424,7 +424,7 @@ def func_italy_a2(args):
                 info['type'] = 'Play Out'
             else:
                 info['type'] = 'Regular Season'
-                
+
             info['homeTeam'] = {
                 'extid': args['homeTeamId'],
                 'name': args['homeTeamName'].replace('_', '-')

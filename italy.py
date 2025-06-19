@@ -602,10 +602,11 @@ def func_italy_a2(args):
         return {'error': 'Something went wrong!'}
 
 def func_italy_b(args):
-    b_resp = requests.get('https://www.legapallacanestro.com/serie/4/calendario')
-    b_soup = BeautifulSoup(b_resp.text, 'html.parser')
-    select_round = b_soup.find('select', attrs={'name': 'round'})
-    rounds = len(select_round.find_all('option'))
+    cal_resp = requests.get('https://www.legapallacanestro.com/serie/4/calendario')
+    cal_soup = BeautifulSoup(cal_resp.text, 'html.parser')
+    script = cal_soup.find('script', attrs={'src': None})
+    calendario = json.loads(script.text.replace('jQuery.extend(Drupal.settings, ', '')[:-2])['calendario']
+    rounds = (len(calendario[list(dict(calendario).keys())[0]]['round_options']))
 
     # Get schedule
     if args['f'] == 'schedule':

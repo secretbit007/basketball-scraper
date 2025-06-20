@@ -4,12 +4,12 @@ def func_kzs(args):
     if args['f'] == 'schedule':
         args['season'] = int(request.args.get('season')[-2:]) + 1
         games = []
-        respCount = requests.get(f'https://api.sistem.kzs.si/api/v1/public/matches/?requestType=COUNT&seasonId={args["season"]}&competitionIds=478')
+        respCount = requests.get(f'https://api.sistem.kzs.si/api/v1/public/matches/?requestType=COUNT&seasonId={args["season"]}&competitionIds={args["spar"]}')
         matchCount = respCount.json()['data']['count']
         pageCount = ceil(matchCount / 20)
 
         for pageIndex in range(pageCount):
-            urlPage = f'https://api.sistem.kzs.si/api/v1/public/matches/?requestType=FETCH&limit=20&offset={pageIndex * 20}&seasonId={args["season"]}&competitionIds=478'
+            urlPage = f'https://api.sistem.kzs.si/api/v1/public/matches/?requestType=FETCH&limit=20&offset={pageIndex * 20}&seasonId={args["season"]}&competitionIds={args["spar"]}'
             respPage = requests.get(urlPage)
             items = respPage.json()['data']['items']
 

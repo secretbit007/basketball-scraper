@@ -261,13 +261,7 @@ def get_player(extid):
     info['extid'] = extid
     info['source'] = url
 
-    try:
-        info['shirtNumber'] = profile.find('h2').get_text(';').split(';')[3].strip().replace('#', '')
-    except:
-        pass
-
-    info['position'] = profile.find('h2').get_text(';').split(';')[1].strip()
-    info['team'] = soup.find_all('div', class_='portal widget')[-1].find('a').get_text()
+    info['position'] = re.search(r'#(\d+)', profile.find('h2').get_text()).group(1)
 
     items = profile.find_all('strong')
 
@@ -283,6 +277,14 @@ def get_player(extid):
 
         if item.get_text() == 'Nationality:':
             info['nationality'] = item.find_next_sibling('a').get_text().strip()
+
+    right = soup.find('div', class_='half-column-right')
+    items = right.find_all('strong')
+
+    for item in items:
+        if item.get_text() == 'Agent:':
+            info['agent'] = item.find_next_sibling('a').get_text().strip()
+            break
 
     return info
 

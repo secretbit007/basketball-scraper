@@ -63,11 +63,11 @@ def get_schedule_by_date(params: list):
 
 def get_schedule(spar: str):
     games = []
-
+    
     api = f"https://basketball.realgm.com/ajax/schedules.phtml?league=International&leagueid={spar.split('/')[-2]}"
     resp = requests.get(api)
     dates = resp.json()
-    params = [[spar].extend(date) for date in dates]
+    params = [[spar, date[0], date[1], date[2]] for date in dates]
 
     with ThreadPoolExecutor(max_workers=50) as worker:
         results = worker.map(get_schedule_by_date, params)

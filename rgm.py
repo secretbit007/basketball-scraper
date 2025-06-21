@@ -288,7 +288,7 @@ def get_player(extid):
 
 def func_rgm(args):
     if args['f'] == 'schedule':
-        games = get_schedule()
+        games = get_schedule(args['spar'])
 
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

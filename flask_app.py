@@ -73,8 +73,7 @@ def get_data():
         elif args['lpar'] == 'SerieB':
             return func_italy_b(args)
     elif args['source'] == 'RGM2425':
-        if args['lpar'] == 'MNE 1':
-            return func_rgm(args)
+        return func_rgm(args)
 
     if args["lpar"] == 'E' or args["lpar"] == 'U':
         return func_euroleague_eurocup(args)

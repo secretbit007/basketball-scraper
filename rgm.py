@@ -2,12 +2,12 @@ from library import *
 
 def get_schedule_by_date(params: list):
     games = []
-    spar = params[0]
+    lpar = params[0]
     day = params[2]
     month = params[1]
     year = params[3]
 
-    api = f"https://basketball.realgm.com/{spar}/schedules/{datetime(year, month, day).strftime('%Y-%m-%d')}"
+    api = f"https://basketball.realgm.com/{lpar}/schedules/{datetime(year, month, day).strftime('%Y-%m-%d')}"
     resp = requests.get(api)
 
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -61,13 +61,13 @@ def get_schedule_by_date(params: list):
 
     return games
 
-def get_schedule(spar: str):
+def get_schedule(lpar: str):
     games = []
     
-    api = f"https://basketball.realgm.com/ajax/schedules.phtml?league=International&leagueid={spar.split('/')[-2]}"
+    api = f"https://basketball.realgm.com/ajax/schedules.phtml?league=International&leagueid={lpar.split('/')[-2]}"
     resp = requests.get(api)
     dates = resp.json()
-    params = [[spar, date[0], date[1], date[2]] for date in dates]
+    params = [[lpar, date[0], date[1], date[2]] for date in dates]
 
     with ThreadPoolExecutor(max_workers=50) as worker:
         results = worker.map(get_schedule_by_date, params)
@@ -290,7 +290,7 @@ def get_player(extid):
 
 def func_rgm(args):
     if args['f'] == 'schedule':
-        games = get_schedule(args['spar'])
+        games = get_schedule(args['lpar'])
 
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':

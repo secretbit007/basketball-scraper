@@ -262,7 +262,7 @@ def get_player(extid):
     info['source'] = url
 
     info['shirtNumber'] = re.search(r'#(\d+)', profile.find('h2').get_text()).group(1)
-    info['position'] = profile.find('h2').get_text().replace(info['shirtNumber'], '').replace(info['name'], '').strip()
+    info['position'] = profile.find('h2').get_text().replace(f"#{info['shirtNumber']}", '').replace(info['name'], '').strip()
 
     items = profile.find_all('strong')
 

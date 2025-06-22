@@ -180,12 +180,12 @@ def get_boxscore(extid):
         stat['player_name'] = '- TEAM -'
 
         item = {}
-        team = boxscore_tables[-1].find('tfoot').find_all('tr')[1].find_all('th')
-        item['Defensive rebounds'] = int(team[get_col_index(boxscore_tables[-1], 'Def')].get_text())
-        item['Offensive rebounds'] = int(team[get_col_index(boxscore_tables[-1], 'Off')].get_text())
-        item['Total rebounds'] = int(team[get_col_index(boxscore_tables[-1], 'Reb')].get_text())
-        item['Turnovers'] = int(team[get_col_index(boxscore_tables[-1], 'TO')].get_text())
-        item['Personal fouls'] = int(team[get_col_index(boxscore_tables[-1], 'PF')].get_text())
+        team = boxscore_tables[-1].find('tfoot').find_all('tr')[0].find_all('th')
+        item['Defensive rebounds'] = int(team[get_col_index(boxscore_tables[-1], 'Def')].get_text() or 0)
+        item['Offensive rebounds'] = int(team[get_col_index(boxscore_tables[-1], 'Off')].get_text() or 0)
+        item['Total rebounds'] = int(team[get_col_index(boxscore_tables[-1], 'Reb')].get_text() or 0)
+        item['Turnovers'] = int(team[get_col_index(boxscore_tables[-1], 'TO')].get_text() or 0)
+        item['Personal fouls'] = int(team[get_col_index(boxscore_tables[-1], 'PF')].get_text() or 0)
 
         stat['items'] = item
         info['stats'].append(stat)
@@ -233,12 +233,12 @@ def get_boxscore(extid):
         stat['player_name'] = '- TEAM -'
 
         item = {}
-        team = boxscore_tables[0].find('tfoot').find_all('tr')[1].find_all('th')
-        item['Defensive rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Def')].get_text())
-        item['Offensive rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Off')].get_text())
-        item['Total rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Reb')].get_text())
-        item['Turnovers'] = int(team[get_col_index(boxscore_tables[0], 'TO')].get_text())
-        item['Personal fouls'] = int(team[get_col_index(boxscore_tables[0], 'PF')].get_text())
+        team = boxscore_tables[0].find('tfoot').find_all('tr')[0].find_all('th')
+        item['Defensive rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Def')].get_text() or 0)
+        item['Offensive rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Off')].get_text() or 0)
+        item['Total rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Reb')].get_text() or 0)
+        item['Turnovers'] = int(team[get_col_index(boxscore_tables[0], 'TO')].get_text() or 0)
+        item['Personal fouls'] = int(team[get_col_index(boxscore_tables[0], 'PF')].get_text() or 0)
 
         stat['items'] = item
         info['stats'].append(stat)

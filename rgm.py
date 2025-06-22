@@ -233,7 +233,7 @@ def get_boxscore(extid):
         stat['player_name'] = '- TEAM -'
 
         item = {}
-        team = boxscore_tables[-1].find('tfoot').find_all('tr')[1].find_all('th')
+        team = boxscore_tables[0].find('tfoot').find_all('tr')[1].find_all('th')
         item['Defensive rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Def')].get_text())
         item['Offensive rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Off')].get_text())
         item['Total rebounds'] = int(team[get_col_index(boxscore_tables[0], 'Reb')].get_text())

@@ -165,15 +165,27 @@ def get_boxscore(extid):
         info['source'] = url
         info['type'] = 'Regular'
         
-        info['homeTeam'] = {
-            'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get_text(),
-            'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get('href').split('/')[-2],
-        }
+        try:
+            info['homeTeam'] = {
+                'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get_text(),
+                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get('href').split('/')[-2],
+            }
+        except:
+            info['homeTeam'] = {
+                'name': soup.find_all('h2')[2].get_text().strip(),
+                'extid': soup.find_all('h2')[2].get_text().strip(),
+            }
 
-        info['visitorTeam'] = {
-            'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get_text(),
-            'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get('href').split('/')[-2],
-        }
+        try:
+            info['visitorTeam'] = {
+                'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get_text(),
+                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get('href').split('/')[-2],
+            }
+        except:
+            info['visitorTeam'] = {
+                'name': soup.find_all('h2')[1].get_text().strip(),
+                'extid': soup.find_all('h2')[1].get_text().strip(),
+            }
 
         score_table = soup.find('table', class_='table table-striped table-hover table-bordered table-compact table-nowrap')
 

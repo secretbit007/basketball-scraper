@@ -89,7 +89,7 @@ def get_schedule(lpar: str):
         for match in matches:
             game = {}
             game['competition'] = soup.find("h1").get_text().replace('Schedule', '').replace('Bracket', '')
-            game['playDate'] = datetime.strptime(soup.find('td', attrs={'data-th': 'Date'}).get_text(), '%b %d, %Y').strftime('%Y-%m-%d')
+            game['playDate'] = datetime.strptime(match.find('td', attrs={'data-th': 'Date'}).get_text(), '%b %d, %Y').strftime('%Y-%m-%d')
             game['round'] = '-'
             
             game['state'] = 'Completed'

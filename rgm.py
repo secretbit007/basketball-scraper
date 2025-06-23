@@ -97,6 +97,9 @@ def get_schedule(lpar: str):
             game['type'] = 'Regular'
             
             home_team = match.find('td', attrs={'data-th': 'Home Team'})
+
+            if home_team is None:
+                home_team = match.find('td', attrs={'data-th': 'Home'})
             
             game['homeTeam'] = {
                 'name': home_team.get_text()
@@ -108,6 +111,10 @@ def get_schedule(lpar: str):
                 game['homeTeam']['extid'] = game['homeTeam']['name']
 
             visitor_team = match.find('td', attrs={'data-th': 'Away Team'})
+
+            if visitor_team is None:
+                visitor_team = match.find('td', attrs={'data-th': 'Away'})
+
             game['visitorTeam'] = {
                 'name': visitor_team.get_text()
             }

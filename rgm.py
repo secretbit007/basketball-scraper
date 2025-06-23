@@ -64,16 +64,80 @@ def get_schedule_by_date(params: list):
 def get_schedule(lpar: str):
     games = []
     
-    api = f"https://basketball.realgm.com/ajax/schedules.phtml?league=International&leagueid={lpar.split('/')[-2]}"
-    resp = requests.get(api)
-    dates = resp.json()
-    params = [[lpar, date[0], date[1], date[2]] for date in dates]
+    league = lpar.lstrip('/').split('/')[0]
 
-    with ThreadPoolExecutor(max_workers=50) as worker:
-        results = worker.map(get_schedule_by_date, params)
-        
-        for result in results:
-            games.extend(result)
+    if league == 'international':
+        api = f"https://basketball.realgm.com/ajax/schedules.phtml?league={league}&leagueid={lpar.split('/')[-2]}"
+        resp = requests.get(api)
+        dates = resp.json()
+        params = [[lpar, date[0], date[1], date[2]] for date in dates]
+
+        with ThreadPoolExecutor(max_workers=50) as worker:
+            results = worker.map(get_schedule_by_date, params)
+            
+            for result in results:
+                games.extend(result)
+    else:
+        api = f"https://basketball.realgm.com/{lpar}"
+        resp = requests.get(api)
+        soup = BeautifulSoup(resp.text, 'html.parser')
+
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        table = soup.find_all('table', class_='table table-striped table-hover table-bordered table-compact table-nowrap')[-1]
+        matches = table.find('tbody').find_all('tr')
+
+        for match in matches:
+            game = {}
+            game['competition'] = soup.find("h1").get_text().replace('Schedule', '').replace('Bracket', '')
+            game['playDate'] = datetime.strptime(soup.find('td', attrs={'data-th': 'Date'}).get_text(), '%b %d, %Y').strftime('%Y-%m-%d')
+            game['round'] = '-'
+            
+            game['state'] = 'Completed'
+                
+            game['type'] = 'Regular'
+            
+            home_team = match.find('td', attrs={'data-th': 'Home Team'})
+            
+            game['homeTeam'] = {
+                'name': home_team.get_text()
+            }
+
+            try:
+                game['homeTeam']['extid'] = home_team.find('a', recursive=False).get('href').split('/')[-3]
+            except:
+                game['homeTeam']['extid'] = game['homeTeam']['name']
+
+            visitor_team = match.find('td', attrs={'data-th': 'Away Team'})
+            game['visitorTeam'] = {
+                'name': visitor_team.get_text()
+            }
+
+            try:
+                game['visitorTeam']['extid'] = visitor_team.find('a', recursive=False).get('href').split('/')[-3]
+            except:
+                game['visitorTeam']['extid'] = game['visitorTeam']['name']
+
+            result = match.find('td', attrs={'data-th': 'Result'})
+
+            if '-' not in result.get_text():
+                continue
+
+            game['homeScores'] = {
+                'final': result.get_text().split('-')[-1]
+            }
+            
+            game['visitorScores'] = {
+                'final': result.get_text().split('-')[0]
+            }
+            
+            try:
+                game['extid'] = result.find('a').get('href')
+            except:
+                continue
+
+            game['source'] = 'https://basketball.realgm.com' + result.find('a').get('href')
+
+            games.append(game)
 
     return games
 

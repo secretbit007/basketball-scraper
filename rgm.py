@@ -21,7 +21,7 @@ def get_schedule_by_date(params: list):
             game['competition'] = soup.find('option', attrs={'selected': 'selected'}).get_text()
         except:
             game['competition'] = soup.find('option').get_text()
-            
+
         game['playDate'] = datetime(year, month, day).strftime('%Y-%m-%d')
         game['round'] = '-'
         
@@ -32,13 +32,13 @@ def get_schedule_by_date(params: list):
         home_team = match.find('td', attrs={'data-th': 'Home Team'})
         
         game['homeTeam'] = {
-            'extid': home_team.find('a', recursive=False).get('href'),
+            'extid': home_team.find('a', recursive=False).get_text(),
             'name': home_team.find('a', recursive=False).get_text()
         }
 
         visitor_team = match.find('td', attrs={'data-th': 'Away Team'})
         game['visitorTeam'] = {
-            'extid': visitor_team.find('a', recursive=False).get('href'),
+            'extid': visitor_team.find('a', recursive=False).get_text(),
             'name': visitor_team.find('a', recursive=False).get_text()
         }
 
@@ -110,10 +110,10 @@ def get_schedule(lpar: str):
                 'name': home_team.get_text()
             }
 
-            try:
-                game['homeTeam']['extid'] = home_team.find('a', recursive=False).get('href')
-            except:
-                game['homeTeam']['extid'] = game['homeTeam']['name']
+            # try:
+            #     game['homeTeam']['extid'] = home_team.find('a', recursive=False).get('href')
+            # except:
+            game['homeTeam']['extid'] = game['homeTeam']['name']
 
             visitor_team = match.find('td', attrs={'data-th': 'Away Team'})
 
@@ -124,10 +124,10 @@ def get_schedule(lpar: str):
                 'name': visitor_team.get_text()
             }
 
-            try:
-                game['visitorTeam']['extid'] = visitor_team.find('a', recursive=False).get('href')
-            except:
-                game['visitorTeam']['extid'] = game['visitorTeam']['name']
+            # try:
+            #     game['visitorTeam']['extid'] = visitor_team.find('a', recursive=False).get('href')
+            # except:
+            game['visitorTeam']['extid'] = game['visitorTeam']['name']
 
             result = match.find('td', attrs={'data-th': 'Result'})
 
@@ -177,27 +177,27 @@ def get_boxscore(extid):
         info['source'] = url
         info['type'] = 'Regular'
         
-        try:
-            info['homeTeam'] = {
-                'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get_text(),
-                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get('href'),
-            }
-        except:
-            info['homeTeam'] = {
-                'name': soup.find_all('h2')[2].get_text().strip(),
-                'extid': soup.find_all('h2')[2].get_text().strip(),
-            }
+        # try:
+        #     info['homeTeam'] = {
+        #         'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get_text(),
+        #         'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get('href'),
+        #     }
+        # except:
+        info['homeTeam'] = {
+            'name': soup.find_all('h2')[2].get_text().strip(),
+            'extid': soup.find_all('h2')[2].get_text().strip(),
+        }
 
-        try:
-            info['visitorTeam'] = {
-                'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get_text(),
-                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get('href'),
-            }
-        except:
-            info['visitorTeam'] = {
-                'name': soup.find_all('h2')[1].get_text().strip(),
-                'extid': soup.find_all('h2')[1].get_text().strip(),
-            }
+        # try:
+        #     info['visitorTeam'] = {
+        #         'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get_text(),
+        #         'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get('href'),
+        #     }
+        # except:
+        info['visitorTeam'] = {
+            'name': soup.find_all('h2')[1].get_text().strip(),
+            'extid': soup.find_all('h2')[1].get_text().strip(),
+        }
 
         score_table = soup.find('table', class_='table table-striped table-hover table-bordered table-compact table-nowrap')
 

@@ -21,6 +21,7 @@ def get_schedule_by_game(url: str):
     }
 
     info['state'] = 'Finished'
+    info['type'] = 'Regular'
 
     info['homeScores'] = {
         'final': int(info_elem.find_all('div', class_='resultado')[0].get_text(strip=True))
@@ -78,6 +79,7 @@ def get_boxscore(extid):
         
         info['extid'] = extid
         info['source'] = url
+        info['type'] = 'Regular'
         info['playDate'] = datetime.strptime(soup.find('div', class_='datos_evento').find('span', class_='roboto_bold').get_text(strip=True), '%d/%m/%Y').strftime('%Y-%m-%d')
 
         info['homeTeam'] = {

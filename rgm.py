@@ -27,13 +27,13 @@ def get_schedule_by_date(params: list):
         home_team = match.find('td', attrs={'data-th': 'Home Team'})
         
         game['homeTeam'] = {
-            'extid': home_team.find('a', recursive=False).get('href').split('/')[-3],
+            'extid': home_team.find('a', recursive=False).get('href'),
             'name': home_team.find('a', recursive=False).get_text()
         }
 
         visitor_team = match.find('td', attrs={'data-th': 'Away Team'})
         game['visitorTeam'] = {
-            'extid': visitor_team.find('a', recursive=False).get('href').split('/')[-3],
+            'extid': visitor_team.find('a', recursive=False).get('href'),
             'name': visitor_team.find('a', recursive=False).get_text()
         }
 
@@ -106,7 +106,7 @@ def get_schedule(lpar: str):
             }
 
             try:
-                game['homeTeam']['extid'] = home_team.find('a', recursive=False).get('href').split('/')[-3]
+                game['homeTeam']['extid'] = home_team.find('a', recursive=False).get('href')
             except:
                 game['homeTeam']['extid'] = game['homeTeam']['name']
 
@@ -120,7 +120,7 @@ def get_schedule(lpar: str):
             }
 
             try:
-                game['visitorTeam']['extid'] = visitor_team.find('a', recursive=False).get('href').split('/')[-3]
+                game['visitorTeam']['extid'] = visitor_team.find('a', recursive=False).get('href')
             except:
                 game['visitorTeam']['extid'] = game['visitorTeam']['name']
 
@@ -168,14 +168,14 @@ def get_boxscore(extid):
         
         info = {}
         info['extid'] = extid
-        info['playDate'] = extid.split('/')[-3]
+        info['playDate'] = re.search(r'\d{4}-\d{2}-\d{2}', extid).group(0)
         info['source'] = url
         info['type'] = 'Regular'
         
         try:
             info['homeTeam'] = {
                 'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get_text(),
-                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get('href').split('/')[-2],
+                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[-1].get('href'),
             }
         except:
             info['homeTeam'] = {
@@ -186,7 +186,7 @@ def get_boxscore(extid):
         try:
             info['visitorTeam'] = {
                 'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get_text(),
-                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get('href').split('/')[-2],
+                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0],
             }
         except:
             info['visitorTeam'] = {

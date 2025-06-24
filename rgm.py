@@ -16,7 +16,12 @@ def get_schedule_by_date(params: list):
 
     for match in matches:
         game = {}
-        game['competition'] = soup.find('option', attrs={'selected': 'selected'}).get_text()
+
+        try:
+            game['competition'] = soup.find('option', attrs={'selected': 'selected'}).get_text()
+        except:
+            game['competition'] = soup.find('option').get_text()
+            
         game['playDate'] = datetime(year, month, day).strftime('%Y-%m-%d')
         game['round'] = '-'
         

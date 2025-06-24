@@ -64,13 +64,13 @@ def get_schedule_by_date(params: list):
 def get_schedule(lpar: str):
     games = []
     
-    league = lpar.lstrip('/').split('/')[0]
+    league = unquote(lpar).lstrip('/').split('/')[0]
 
     if league == 'international':
-        api = f"https://basketball.realgm.com/ajax/schedules.phtml?league={league}&leagueid={lpar.split('/')[-2]}"
+        api = f"https://basketball.realgm.com/ajax/schedules.phtml?league={league}&leagueid={unquote(lpar).split('/')[-2]}"
         resp = requests.get(api)
         dates = resp.json()
-        params = [[lpar, date[0], date[1], date[2]] for date in dates]
+        params = [[unquote(lpar), date[0], date[1], date[2]] for date in dates]
 
         with ThreadPoolExecutor(max_workers=50) as worker:
             results = worker.map(get_schedule_by_date, params)
@@ -78,7 +78,7 @@ def get_schedule(lpar: str):
             for result in results:
                 games.extend(result)
     else:
-        api = f"https://basketball.realgm.com/{lpar}"
+        api = f"https://basketball.realgm.com/{unquote(lpar)}"
         resp = requests.get(api)
         soup = BeautifulSoup(resp.text, 'html.parser')
 
@@ -159,7 +159,7 @@ def get_col_index(table: Tag, col: str):
     return 0
 
 def get_boxscore(extid):
-    url = f'https://basketball.realgm.com{extid}/'
+    url = f'https://basketball.realgm.com{unquote(extid)}/'
 
     resp = requests.get(url)
     
@@ -167,8 +167,8 @@ def get_boxscore(extid):
         soup = BeautifulSoup(resp.text, 'html.parser')
         
         info = {}
-        info['extid'] = extid
-        info['playDate'] = re.search(r'\d{4}-\d{2}-\d{2}', extid).group(0)
+        info['extid'] = unquote(extid)
+        info['playDate'] = re.search(r'\d{4}-\d{2}-\d{2}', unquote(extid)).group(0)
         info['source'] = url
         info['type'] = 'Regular'
         
@@ -331,7 +331,7 @@ def get_boxscore(extid):
         return {'error': 'Something went wrong!'}
 
 def get_player(extid):
-    url = f'https://basketball.realgm.com{extid}'
+    url = f'https://basketball.realgm.com{unquote(extid)}'
     resp = requests.get(url)
     soup = BeautifulSoup(resp.text, 'html.parser')
     profile_box = soup.find('div', class_='profile-box')
@@ -341,7 +341,7 @@ def get_player(extid):
     info['name'] = profile.find('h2').get_text(';').split(';')[0].strip()
     info['firstname'] = info['name'].split(' ')[0]
     info['lastname'] = info['name'].split(' ')[-1]
-    info['extid'] = extid
+    info['extid'] = unquote(extid)
     info['source'] = url
 
     try:

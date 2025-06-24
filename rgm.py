@@ -186,7 +186,7 @@ def get_boxscore(extid):
         try:
             info['visitorTeam'] = {
                 'name': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get_text(),
-                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0],
+                'extid': soup.find_all('a', attrs={'style': 'text-decoration: none;'})[0].get('href'),
             }
         except:
             info['visitorTeam'] = {

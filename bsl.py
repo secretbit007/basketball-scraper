@@ -1,260 +1,368 @@
 from library import *
 
-def get_schedule_by_game(url: str):
-    resp = requests.get(url)
-    soup = BeautifulSoup(resp.text, 'html.parser')
-    cabecera_partido = soup.find('div', class_='cabecera_partido')
-    info_elem = soup.find('div', class_='info')
+def inject_script(driver: webdriver.Chrome):
+    driver.execute_cdp_cmd(
+        'Page.addScriptToEvaluateOnNewDocument',
+        {
+            'source': """
+                console.clear = () => console.log('Console was cleared')
+                const i = setInterval(()=>{
+                if (window.turnstile)
+                    {clearInterval(i)
+                        window.turnstile.render = (a,b) => {
+                        let params = {
+                            sitekey: b.sitekey,
+                            pageurl: window.location.href,
+                            data: b.cData,
+                            pagedata: b.chlPageData,
+                            action: b.action,
+                            userAgent: navigator.userAgent,
+                            json: 1
+                        }
+                        let div = document.createElement('div')
+                        div.id = 'intercepted-params'
+                        div.innerHTML = JSON.stringify(params)
+                        document.body.appendChild(div)
+                        window.cfCallback = b.callback
+                        
+                        return
+                    } 
+                }
+                },50)
+                const j = setInterval(()=>{
+                    let token = document.getElementById('token')
+                    if (token)
+                    {
+                        clearInterval(j)
+                        cfCallback(token.innerHTML)
+                        return
+                    }
+                },50)
+            """
+        }
+    )
 
-    info = {}
-    info['round'] = cabecera_partido.find('h2').get_text(strip=True).split('-')[0].strip()
-    info['playDate'] = datetime.strptime(soup.find('div', class_='datos_evento').find('span', class_='roboto_bold').get_text(strip=True), '%d/%m/%Y').strftime('%Y-%m-%d')
+def bypass_cloudflare(driver: webdriver.Chrome, api_key: str) -> bool:
+    intercepted_params = None
+
+    for _ in range(3):
+        driver.refresh()
+        sleep(3)
+        try:
+            intercepted_params = driver.find_element(By.ID, 'intercepted-params')
+            break
+        except:
+            continue
+
+    if not intercepted_params:
+        return False
+            
+    params = json.loads(intercepted_params.text)
+    data0 = {
+        "key": api_key,
+        "method": "turnstile",
+        "sitekey": params["sitekey"],
+        "action": params["action"],
+        "data": params["data"],
+        "pagedata": params["pagedata"],
+        "useragent": params["userAgent"],
+        "json": 1,
+        "pageurl": params["pageurl"],
+    }
+
+    response = requests.post(f"https://2captcha.com/in.php?", data=data0)
+    s = response.json()["request"]
     
-    info['homeTeam'] = {
-        'extid': cabecera_partido.find_all('h4')[0].get_text(strip=True),
-        'name': cabecera_partido.find_all('h4')[0].get_text(strip=True)
-    }
-
-    info['visitorTeam'] = {
-        'extid': cabecera_partido.find_all('h4')[1].get_text(strip=True),
-        'name': cabecera_partido.find_all('h4')[1].get_text(strip=True)
-    }
-
-    info['state'] = 'Finished'
-    info['type'] = 'Regular'
-
-    info['homeScores'] = {
-        'final': int(info_elem.find_all('div', class_='resultado')[0].get_text(strip=True))
-    }
-
-    info['visitorScores'] = {
-        'final': int(info_elem.find_all('div', class_='resultado')[1].get_text(strip=True))
-    }
-
-    info['competition'] = cabecera_partido.find('h2').get_text(strip=True).split('-')[-1].strip()
-
-    info['extid'] = url.split('/')[-1]
-    info['source'] = url
-
-    return info
-
-def get_schedule(args):
-    games = []
-
-    season = args['season']
-    
-    url = f'https://www.acb.com/calendario/index/temporada_id/{season}'
-
-    resp = requests.get(url)
-
-    if resp.status_code == 200:
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        game_aticles = soup.find_all('article', class_='partido')
-        game_links = []
+    while True:
+        solu = requests.get(f"https://2captcha.com/res.php?key={api_key}&action=get&json=1&id={s}").json()
+        if solu["request"] == "CAPCHA_NOT_READY":
+            sleep(5)
+        elif "ERROR" in solu["request"]:
+            return False
+        else:
+            break
         
-        for article in game_aticles:
-            try:
-                link = 'https://www.acb.com' + article.find('a', attrs={'title': 'estadísticas'}).get('href')
-                game_links.append(link)
-            except:
-                continue
+    solu = solu['request']
+            
+    driver.execute_script(f"""
+        let div = document.createElement('div')
+        div.id = 'token'
+        div.innerHTML = '{solu}'
+        document.body.appendChild(div)
+    """)
+    
+    sleep(3)
+    return True
 
-        with ThreadPoolExecutor(max_workers=50) as executor:
-            results = executor.map(get_schedule_by_game, game_links)
+def get_page_content(url: str):
+    service = Service(ChromeDriverManager().install())
 
-            for result in results:
-                games.append(result)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-infobars")
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+
+    inject_script(driver)
+
+    driver.get(url)
+
+    bypass_cloudflare(driver, '647be8568171d89c96ebd688c764c76a')
+
+    result = driver.page_source
+
+    driver.quit()
+
+    return result
+
+def get_schedule():
+    games = []
+    
+    url = 'https://www.tbf.org.tr/ligler/bsl-2024-2025/maclar'
+
+    soup = BeautifulSoup(get_page_content(url), 'html.parser')
+    table = soup.find('table', id='TableMaclar')
+
+    rows = table.find_all('tr', attrs=({'tabindex': "@ForCounter"}))
+
+    for row in rows:
+        cells = row.find_all('td')
+
+        info = {}
+        info['round'] = cells[get_col_index(table, 'Hafta')].get_text()
+        info['playDate'] = datetime.strptime(cells[get_col_index(table, 'Tarih')].get_text(strip=True), '%d.%m.%Y').strftime('%Y-%m-%d')
+        
+        info['homeTeam'] = {
+            'extid': cells[get_col_index(table, 'A Takım')].get_text(),
+            'name': cells[get_col_index(table, 'A Takım')].get_text()
+        }
+
+        info['visitorTeam'] = {
+            'extid': cells[get_col_index(table, 'B Takım')].get_text(),
+            'name': cells[get_col_index(table, 'B Takım')].get_text()
+        }
+
+        info['state'] = 'Finished'
+        info['type'] = 'Regular'
+
+        try:
+            info['homeScores'] = {
+                'final': int(cells[get_col_index(table, 'Sonuç')].get_text(strip=True).split('-')[0].strip())
+            }
+        except:
+            continue
+
+        info['visitorScores'] = {
+            'final': int(cells[get_col_index(table, 'Sonuç')].get_text(strip=True).split('-')[1].strip())
+        }
+
+        info['competition'] = 'TBL'
+
+        info['extid'] = cells[get_col_index(table, 'Tarih')].get('data-link').split('/')[-1]
+        info['source'] = 'https://www.tbf.org.tr' + cells[get_col_index(table, 'Tarih')].get('data-link')
+
+        games.append(info)
             
     return games
 
 def get_boxscore(extid):
     info = {}
-    url = f'https://www.acb.com/partido/estadisticas/id/{extid}'
-    resp = requests.get(url)
+    url = f'https://www.tbf.org.tr/ligler/bsl-2024-2025/mac-detay/{extid}/istatistik'
+    
+    soup = BeautifulSoup(get_page_content(url), 'html.parser')
+    
+    info['extid'] = extid
+    info['source'] = url
+    info['type'] = 'Regular'
 
-    if resp.status_code == 200:
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        cabecera_partido = soup.find('div', class_='cabecera_partido')
-        info_elem = soup.find('div', class_='info')
-        
-        info['extid'] = extid
-        info['source'] = url
-        info['type'] = 'Regular'
-        info['playDate'] = datetime.strptime(soup.find('div', class_='datos_evento').find('span', class_='roboto_bold').get_text(strip=True), '%d/%m/%Y').strftime('%Y-%m-%d')
+    turkish_months = {
+        'Ocak': 1, 'Şubat': 2, 'Mart': 3, 'Nisan': 4,
+        'Mayıs': 5, 'Haziran': 6, 'Temmuz': 7, 'Ağustos': 8,
+        'Eylül': 9, 'Ekim': 10, 'Kasım': 11, 'Aralık': 12
+    }
 
-        info['homeTeam'] = {
-            'extid': cabecera_partido.find_all('h4')[0].get_text(strip=True),
-            'name': cabecera_partido.find_all('h4')[0].get_text(strip=True)
-        }
+    date_str = soup.find('span', id='body_ctl00_lblMacZamani').get_text(strip=True)
+    day, month, year, _ = date_str.split()
+    month_num = turkish_months[month]
 
-        info['visitorTeam'] = {
-            'extid': cabecera_partido.find_all('h4')[1].get_text(strip=True),
-            'name': cabecera_partido.find_all('h4')[1].get_text(strip=True)
-        }
+    date_obj = datetime(int(year), month_num, int(day)).date()
+    info['playDate'] = date_obj.strftime('%Y-%m-%d')
 
-        result_table = info_elem.find('table')
+    info['homeTeam'] = {
+        'extid': soup.find('h3', id='body_ctl00_lblTakimA_Ismi').get_text(),
+        'name': soup.find('h3', id='body_ctl00_lblTakimA_Ismi').get_text()
+    }
 
-        info['homeScores'] = {
-            'QT1': int(result_table.find('tbody').find_all('tr')[0].find_all('td')[get_col_index(result_table, '1')].get_text(strip=True)),
-            'QT2': int(result_table.find('tbody').find_all('tr')[0].find_all('td')[get_col_index(result_table, '2')].get_text(strip=True)),
-            'QT3': int(result_table.find('tbody').find_all('tr')[0].find_all('td')[get_col_index(result_table, '3')].get_text(strip=True)),
-            'QT4': int(result_table.find('tbody').find_all('tr')[0].find_all('td')[get_col_index(result_table, '4')].get_text(strip=True)),
-            'extra': 0,
-            'final': int(info_elem.find_all('div', class_='resultado')[0].get_text(strip=True))
-        }
-        info['homeScores']['extra'] = info['homeScores']['final'] - info['homeScores']['QT1'] - info['homeScores']['QT2'] - info['homeScores']['QT3'] - info['homeScores']['QT4']
+    info['visitorTeam'] = {
+        'extid': soup.find('h3', id='body_ctl00_lblTakimB_Ismi').get_text(),
+        'name': soup.find('h3', id='body_ctl00_lblTakimB_Ismi').get_text()
+    }
 
-        info['visitorScores'] = {
-            'QT1': int(result_table.find('tbody').find_all('tr')[1].find_all('td')[get_col_index(result_table, '1')].get_text(strip=True)),
-            'QT2': int(result_table.find('tbody').find_all('tr')[1].find_all('td')[get_col_index(result_table, '2')].get_text(strip=True)),
-            'QT3': int(result_table.find('tbody').find_all('tr')[1].find_all('td')[get_col_index(result_table, '3')].get_text(strip=True)),
-            'QT4': int(result_table.find('tbody').find_all('tr')[1].find_all('td')[get_col_index(result_table, '4')].get_text(strip=True)),
-            'extra': 0,
-            'final': int(info_elem.find_all('div', class_='resultado')[1].get_text(strip=True))
-        }
-        info['visitorScores']['extra'] = info['visitorScores']['final'] - info['visitorScores']['QT1'] - info['visitorScores']['QT2'] - info['visitorScores']['QT3'] - info['visitorScores']['QT4']
+    info['homeScores'] = {
+        'QT1': int(soup.find('h6', id='body_ctl00_lblSonuc_1Ceyrek').get_text(strip=True).split('-')[0].strip()),
+        'QT2': int(soup.find('h6', id='body_ctl00_lblSonuc_2Ceyrek').get_text(strip=True).split('-')[0].strip()),
+        'QT3': int(soup.find('h6', id='body_ctl00_lblSonuc_3Ceyrek').get_text(strip=True).split('-')[0].strip()),
+        'QT4': int(soup.find('h6', id='body_ctl00_lblSonuc_4Ceyrek').get_text(strip=True).split('-')[0].strip()),
+        'extra': 0,
+        'final': int(soup.find('span', id='body_ctl00_lblTakimA_Sayi2').get_text())
+    }
+    info['homeScores']['extra'] = info['homeScores']['final'] - info['homeScores']['QT1'] - info['homeScores']['QT2'] - info['homeScores']['QT3'] - info['homeScores']['QT4']
+
+    info['visitorScores'] = {
+        'QT1': int(soup.find('h6', id='body_ctl00_lblSonuc_1Ceyrek').get_text(strip=True).split('-')[1].strip()),
+        'QT2': int(soup.find('h6', id='body_ctl00_lblSonuc_2Ceyrek').get_text(strip=True).split('-')[1].strip()),
+        'QT3': int(soup.find('h6', id='body_ctl00_lblSonuc_3Ceyrek').get_text(strip=True).split('-')[1].strip()),
+        'QT4': int(soup.find('h6', id='body_ctl00_lblSonuc_4Ceyrek').get_text(strip=True).split('-')[1].strip()),
+        'extra': 0,
+        'final': int(soup.find('span', id='body_ctl00_lblTakimB_Sayi2').get_text())
+    }
+    info['visitorScores']['extra'] = info['visitorScores']['final'] - info['visitorScores']['QT1'] - info['visitorScores']['QT2'] - info['visitorScores']['QT3'] - info['visitorScores']['QT4']
 
 
-        # Stats
-        info['stats'] = []
+    # Stats
+    info['stats'] = []
 
-        score_tables = soup.find_all('table', attrs={'data-toggle': 'table-estadisticas'})
+    home_table = soup.find('table', id='FilterPlayer2')
 
-        home_players = score_tables[0].find('tbody').find_all('tr')[:-4]
+    home_players = home_table.find('tbody').find_all('tr')[:-2]
 
-        for player in home_players:
-            cells = player.find_all('td')
-
-            stat = {}
-            stat['team'] = info['homeTeam']['extid']
-
-            player_link = 'https://www.acb.com' + cells[get_col_index(score_tables[0], 'Nombre')].find('a').get('href')
-            player_resp = requests.get(player_link)
-            player_soup = BeautifulSoup(player_resp.text, 'html.parser')
-
-            stat['player_name'] = player_soup.find('h1').get_text(strip=True).strip()
-            stat['player_extid'] = player_resp.url.split('/')[-1]
-
-            item = {}
-            item['2pts Attempts'] = int(cells[get_col_index(score_tables[0], 'T2')].get_text(strip=True).split('/')[-1] or 0)
-            item['2pts Made'] = int(cells[get_col_index(score_tables[0], 'T2')].get_text(strip=True).split('/')[0] or 0)
-            item['3pts Attempts'] = int(cells[get_col_index(score_tables[0], 'T3')].get_text(strip=True).split('/')[-1] or 0)
-            item['3pts Made'] = int(cells[get_col_index(score_tables[0], 'T3')].get_text(strip=True).split('/')[0] or 0)
-            item['Assists'] = int(cells[get_col_index(score_tables[0], 'A')].get_text(strip=True) or 0)
-            item['Block Shots'] = int(cells[get_col_index(score_tables[0], 'F')].get_text(strip=True) or 0)
-            item['Defensive rebounds'] = int(cells[get_col_index(score_tables[0], 'D+O')].get_text(strip=True).split('+')[0] or 0)
-            item['Offensive rebounds'] = int(cells[get_col_index(score_tables[0], 'D+O')].get_text(strip=True).split('+')[-1] or 0)
-            item['Total rebounds'] = int(cells[get_col_index(score_tables[0], 'T')].get_text(strip=True) or 0)
-            item['FT Attempts'] = int(cells[get_col_index(score_tables[0], 'T1')].get_text(strip=True).split('/')[-1] or 0)
-            item['FT Made'] = int(cells[get_col_index(score_tables[0], 'T1')].get_text(strip=True).split('/')[0] or 0)
-            item['Minutes played'] = round(int(cells[get_col_index(score_tables[0], 'Min')].get_text(strip=True).split(':')[0] or 0) + float(cells[get_col_index(score_tables[0], 'Min')].get_text(strip=True).split(':')[-1] or 0) / 60)
-            item['Personal fouls'] = int(cells[get_col_index(score_tables[0], 'F', False)].get_text(strip=True) or 0)
-            item['Points'] = int(cells[get_col_index(score_tables[0], 'P')].get_text(strip=True) or 0)
-            item['Steals'] = int(cells[get_col_index(score_tables[0], 'BR')].get_text(strip=True) or 0)
-            item['Turnovers'] = int(cells[get_col_index(score_tables[0], 'BP')].get_text(strip=True) or 0)
-
-            stat['items'] = item
-            info['stats'].append(stat)
+    for player in home_players:
+        cells = player.find_all('td')
 
         stat = {}
         stat['team'] = info['homeTeam']['extid']
-        stat['player_extid'] = 'team'
-        stat['player_firstname'] = ''
-        stat['player_lastname'] = '- TEAM -'
-        stat['player_name'] = '- TEAM -'
+
+        stat['player_name'] = cells[get_col_index(home_table, 'Basketbolcu')].get_text(strip=True)
+        stat['player_extid'] = cells[get_col_index(home_table, 'Basketbolcu')].find('a').get('href').split('/')[-1]
 
         item = {}
-        cells = score_tables[0].find('tbody').find('tr', class_='equipo').find_all('td')
-        
-        item['Defensive rebounds'] = int(cells[get_col_index(score_tables[0], 'D+O')].get_text(strip=True).split('+')[0] or 0)
-        item['Offensive rebounds'] = int(cells[get_col_index(score_tables[0], 'D+O')].get_text(strip=True).split('+')[-1] or 0)
-        item['Total rebounds'] = int(cells[get_col_index(score_tables[0], 'T')].get_text(strip=True) or 0)
-        item['Turnovers'] = int(cells[get_col_index(score_tables[0], 'BP')].get_text(strip=True) or 0)
-        item['Personal fouls'] = int(cells[get_col_index(score_tables[0], 'F', False)].get_text(strip=True) or 0)
+        item['2pts Attempts'] = int(cells[get_col_index(home_table, '2S')].next_element.get_text(strip=True).split('/')[-1] or 0)
+        item['2pts Made'] = int(cells[get_col_index(home_table, '2S')].next_element.get_text(strip=True).split('/')[0] or 0)
+        item['3pts Attempts'] = int(cells[get_col_index(home_table, '3S')].next_element.get_text(strip=True).split('/')[-1] or 0)
+        item['3pts Made'] = int(cells[get_col_index(home_table, '3S')].next_element.get_text(strip=True).split('/')[0] or 0)
+        item['Assists'] = int(cells[get_col_index(home_table, 'AS')].get_text(strip=True) or 0)
+        item['Block Shots'] = int(cells[get_col_index(home_table, 'BL')].get_text(strip=True) or 0)
+        item['Defensive rebounds'] = int(cells[get_col_index(home_table, 'SR')].get_text(strip=True) or 0)
+        item['Offensive rebounds'] = int(cells[get_col_index(home_table, 'HR')].get_text(strip=True) or 0)
+        item['Total rebounds'] = int(cells[get_col_index(home_table, 'TR')].get_text(strip=True) or 0)
+        item['FT Attempts'] = int(cells[get_col_index(home_table, 'SA')].next_element.get_text(strip=True).split('/')[-1] or 0)
+        item['FT Made'] = int(cells[get_col_index(home_table, 'SA')].next_element.get_text(strip=True).split('/')[0] or 0)
+        item['Minutes played'] = round(int(cells[get_col_index(home_table, 'SÜ')].get_text(strip=True).split(':')[-2] or 0) + float(cells[get_col_index(home_table, 'SÜ')].get_text(strip=True).split(':')[-1] or 0) / 60)
+        item['Personal fouls'] = int(cells[get_col_index(home_table, 'FA', False)].get_text(strip=True) or 0)
+        item['Points'] = int(cells[get_col_index(home_table, 'SY')].get_text(strip=True) or 0)
+        item['Steals'] = int(cells[get_col_index(home_table, 'TÇ')].get_text(strip=True) or 0)
+        item['Turnovers'] = int(cells[get_col_index(home_table, 'TK')].get_text(strip=True) or 0)
 
         stat['items'] = item
         info['stats'].append(stat)
 
-        away_players = score_tables[1].find('tbody').find_all('tr')[:-4]
+    stat = {}
+    stat['team'] = info['homeTeam']['extid']
+    stat['player_extid'] = 'team'
+    stat['player_firstname'] = ''
+    stat['player_lastname'] = '- TEAM -'
+    stat['player_name'] = '- TEAM -'
 
-        for player in away_players:
-            cells = player.find_all('td')
+    item = {}
+    cells = home_table.find('tbody').find_all('tr')[-2].find_all('td')
+    
+    item['Defensive rebounds'] = int(cells[get_col_index(home_table, 'SR')].get_text(strip=True) or 0)
+    item['Offensive rebounds'] = int(cells[get_col_index(home_table, 'HR')].get_text(strip=True) or 0)
+    item['Total rebounds'] = int(cells[get_col_index(home_table, 'TR')].get_text(strip=True) or 0)
+    item['Turnovers'] = int(cells[get_col_index(home_table, 'TK')].get_text(strip=True) or 0)
+    item['Personal fouls'] = int(cells[get_col_index(home_table, 'FA', False)].get_text(strip=True) or 0)
 
-            stat = {}
-            stat['team'] = info['visitorTeam']['extid']
+    stat['items'] = item
+    info['stats'].append(stat)
 
-            player_link = 'https://www.acb.com' + cells[get_col_index(score_tables[1], 'Nombre')].find('a').get('href')
-            player_resp = requests.get(player_link)
-            player_soup = BeautifulSoup(player_resp.text, 'html.parser')
+    away_table = soup.find('table', id='FilterPlayer3')
+    away_players = away_table.find('tbody').find_all('tr')[:-2]
 
-            stat['player_name'] = player_soup.find('div', class_='contenedora_datos_secundarios').find('div').find('span').get_text(strip=True)
-            stat['player_extid'] = player_resp.url.split('/')[-1]
-
-            item = {}
-            item['2pts Attempts'] = int(cells[get_col_index(score_tables[1], 'T2')].get_text(strip=True).split('/')[-1] or 0)
-            item['2pts Made'] = int(cells[get_col_index(score_tables[1], 'T2')].get_text(strip=True).split('/')[0] or 0)
-            item['3pts Attempts'] = int(cells[get_col_index(score_tables[1], 'T3')].get_text(strip=True).split('/')[-1] or 0)
-            item['3pts Made'] = int(cells[get_col_index(score_tables[1], 'T3')].get_text(strip=True).split('/')[0] or 0)
-            item['Assists'] = int(cells[get_col_index(score_tables[1], 'A')].get_text(strip=True) or 0)
-            item['Block Shots'] = int(cells[get_col_index(score_tables[1], 'F')].get_text(strip=True) or 0)
-            item['Defensive rebounds'] = int(cells[get_col_index(score_tables[1], 'D+O')].get_text(strip=True).split('+')[0] or 0)
-            item['Offensive rebounds'] = int(cells[get_col_index(score_tables[1], 'D+O')].get_text(strip=True).split('+')[-1] or 0)
-            item['Total rebounds'] = int(cells[get_col_index(score_tables[1], 'T')].get_text(strip=True) or 0)
-            item['FT Attempts'] = int(cells[get_col_index(score_tables[1], 'T1')].get_text(strip=True).split('/')[-1] or 0)
-            item['FT Made'] = int(cells[get_col_index(score_tables[1], 'T1')].get_text(strip=True).split('/')[0] or 0)
-            item['Minutes played'] = round(int(cells[get_col_index(score_tables[1], 'Min')].get_text(strip=True).split(':')[0] or 0) + float(cells[get_col_index(score_tables[1], 'Min')].get_text(strip=True).split(':')[-1] or 0) / 60)
-            item['Personal fouls'] = int(cells[get_col_index(score_tables[1], 'F', False)].get_text(strip=True) or 0)
-            item['Points'] = int(cells[get_col_index(score_tables[1], 'P')].get_text(strip=True) or 0)
-            item['Steals'] = int(cells[get_col_index(score_tables[1], 'BR')].get_text(strip=True) or 0)
-            item['Turnovers'] = int(cells[get_col_index(score_tables[1], 'BP')].get_text(strip=True) or 0)
-
-            stat['items'] = item
-            info['stats'].append(stat)
+    for player in away_players:
+        cells = player.find_all('td')
 
         stat = {}
         stat['team'] = info['visitorTeam']['extid']
-        stat['player_extid'] = 'team'
-        stat['player_firstname'] = ''
-        stat['player_lastname'] = '- TEAM -'
-        stat['player_name'] = '- TEAM -'
+
+        stat['player_name'] = cells[get_col_index(away_table, 'Basketbolcu')].get_text(strip=True)
+        stat['player_extid'] = cells[get_col_index(away_table, 'Basketbolcu')].find('a').get('href').split('/')[-1]
 
         item = {}
-        cells = score_tables[1].find('tbody').find('tr', class_='equipo').find_all('td')
-        item['Defensive rebounds'] = int(cells[get_col_index(score_tables[1], 'D+O')].get_text(strip=True).split('+')[0] or 0)
-        item['Offensive rebounds'] = int(cells[get_col_index(score_tables[1], 'D+O')].get_text(strip=True).split('+')[-1] or 0)
-        item['Total rebounds'] = int(cells[get_col_index(score_tables[1], 'T')].get_text(strip=True) or 0)
-        item['Turnovers'] = int(cells[get_col_index(score_tables[1], 'BP')].get_text(strip=True) or 0)
-        item['Personal fouls'] = int(cells[get_col_index(score_tables[1], 'F', False)].get_text(strip=True) or 0)
+        item['2pts Attempts'] = int(cells[get_col_index(away_table, '2S')].next_element.get_text(strip=True).split('/')[-1] or 0)
+        item['2pts Made'] = int(cells[get_col_index(away_table, '2S')].next_element.get_text(strip=True).split('/')[0] or 0)
+        item['3pts Attempts'] = int(cells[get_col_index(away_table, '3S')].next_element.get_text(strip=True).split('/')[-1] or 0)
+        item['3pts Made'] = int(cells[get_col_index(away_table, '3S')].next_element.get_text(strip=True).split('/')[0] or 0)
+        item['Assists'] = int(cells[get_col_index(away_table, 'AS')].get_text(strip=True) or 0)
+        item['Block Shots'] = int(cells[get_col_index(away_table, 'BL')].get_text(strip=True) or 0)
+        item['Defensive rebounds'] = int(cells[get_col_index(away_table, 'SR')].get_text(strip=True) or 0)
+        item['Offensive rebounds'] = int(cells[get_col_index(away_table, 'HR')].get_text(strip=True) or 0)
+        item['Total rebounds'] = int(cells[get_col_index(away_table, 'TR')].get_text(strip=True) or 0)
+        item['FT Attempts'] = int(cells[get_col_index(away_table, 'SA')].next_element.get_text(strip=True).split('/')[-1] or 0)
+        item['FT Made'] = int(cells[get_col_index(away_table, 'SA')].next_element.get_text(strip=True).split('/')[0] or 0)
+        item['Minutes played'] = round(int(cells[get_col_index(away_table, 'SÜ')].get_text(strip=True).split(':')[-2] or 0) + float(cells[get_col_index(away_table, 'SÜ')].get_text(strip=True).split(':')[-1] or 0) / 60)
+        item['Personal fouls'] = int(cells[get_col_index(away_table, 'FA', False)].get_text(strip=True) or 0)
+        item['Points'] = int(cells[get_col_index(away_table, 'SY')].get_text(strip=True) or 0)
+        item['Steals'] = int(cells[get_col_index(away_table, 'TÇ')].get_text(strip=True) or 0)
+        item['Turnovers'] = int(cells[get_col_index(away_table, 'TK')].get_text(strip=True) or 0)
 
         stat['items'] = item
         info['stats'].append(stat)
+
+    stat = {}
+    stat['team'] = info['visitorTeam']['extid']
+    stat['player_extid'] = 'team'
+    stat['player_firstname'] = ''
+    stat['player_lastname'] = '- TEAM -'
+    stat['player_name'] = '- TEAM -'
+
+    item = {}
+    cells = away_table.find('tbody').find_all('tr')[-2].find_all('td')
+    
+    item['Defensive rebounds'] = int(cells[get_col_index(away_table, 'SR')].get_text(strip=True) or 0)
+    item['Offensive rebounds'] = int(cells[get_col_index(away_table, 'HR')].get_text(strip=True) or 0)
+    item['Total rebounds'] = int(cells[get_col_index(away_table, 'TR')].get_text(strip=True) or 0)
+    item['Turnovers'] = int(cells[get_col_index(away_table, 'TK')].get_text(strip=True) or 0)
+    item['Personal fouls'] = int(cells[get_col_index(away_table, 'FA', False)].get_text(strip=True) or 0)
+
+    stat['items'] = item
+    info['stats'].append(stat)
 
     return info
     
 def get_player(extid):
     info = {}
 
-    url = f'https://www.acb.com/jugador/temporada-a-temporada/id/{extid}'
-    resp = requests.get(url)
+    url = f'https://www.tbf.org.tr/ligler/bsl-2024-2025/basketbolcu-detay/{extid}'
 
-    if resp.status_code == 200:
-        soup = BeautifulSoup(resp.text, 'html.parser')
+    page_content = get_page_content(url)
+    soup = BeautifulSoup(page_content, 'html.parser')
 
-        info['name'] = soup.find('div', class_='contenedora_datos_secundarios').find('div').find('span').get_text(strip=True)
-        info['extid'] = extid
-        info['source'] = url
-        info['position'] = soup.find('div', class_='posicion').find('span').get_text(strip=True)
-        info['dateOfBirth'] = datetime.strptime(re.search(r'\d{2}/\d{2}/\d{4}', soup.find('div', class_='fecha_nacimiento').find('span', class_='roboto_condensed_bold').get_text(strip=True)).group(0), '%d/%m/%Y').strftime('%Y-%m-%d')
-        info['placeOfBirth'] = soup.find('div', class_='lugar_nacimiento').find('span', class_='roboto_condensed_bold').get_text(strip=True)
-        info['height'] = int(float(soup.find('div', class_='altura').find('span').get_text(strip=True).replace('m', '').replace(',', '.')) * 100)
-        info['nationality'] = soup.find('div', class_='nacionalidad').find('span', class_='roboto_condensed_bold').get_text(strip=True)
+    info['name'] = soup.find('h1').get_text()
+    info['extid'] = extid
+    info['source'] = url
+
+    icons = soup.find('h4').find_all('i')
+
+    for icon in icons:
+        if 'fa-birthday-cake' in icon.get('class'):
+            info['dateOfBirth'] = datetime.strptime(icon.next_sibling.get_text(strip=True), '%d.%m.%Y').strftime('%Y-%m-%d')
+
+        if 'fa-flag' in icon.get('class'):
+            info['nationality'] = icon.next_sibling.get_text(strip=True)
+
+        if 'fa-arrows-v' in icon.get('class'):
+            info['height'] = int(icon.next_sibling.get_text(strip=True).replace('cm', '').strip())
 
     return info
-
+    
 def func_bsl(args):
     if args['f'] == 'schedule':
         games = []
-        schedule = get_schedule(args)
+        schedule = get_schedule()
         games.extend(schedule)
         
         return json.dumps(games, indent=4)

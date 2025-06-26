@@ -232,9 +232,20 @@ def get_boxscore(extid):
     return info
     
 def get_player(extid):
-    info = {}
-
     url = f'https://www.acb.com/jugador/temporada-a-temporada/id/{extid}'
+
+    info = {
+        'name': '-',
+        'firstname': '-',
+        'lastname': '-',
+        'extid': extid,
+        'url': url,
+        'position': '-',
+        'dateOfBirth': '-',
+        'placeOfBirth': '-',
+        'height': '-',
+        'nationality': '-'
+    }
     resp = requests.get(url)
 
     if resp.status_code == 200:
@@ -243,8 +254,6 @@ def get_player(extid):
         info['name'] = soup.find('div', class_='contenedora_datos_secundarios').find('div').find('span').get_text(strip=True)
         info['firstname'] = info['name'].split(' ')[0]
         info['lastname'] = info['name'].split(' ')[-1]
-        info['extid'] = extid
-        info['source'] = url
         info['position'] = soup.find('div', class_='posicion').find('span').get_text(strip=True)
         info['dateOfBirth'] = datetime.strptime(re.search(r'\d{2}/\d{2}/\d{4}', soup.find('div', class_='fecha_nacimiento').find('span', class_='roboto_condensed_bold').get_text(strip=True)).group(0), '%d/%m/%Y').strftime('%Y-%m-%d')
         info['placeOfBirth'] = soup.find('div', class_='lugar_nacimiento').find('span', class_='roboto_condensed_bold').get_text(strip=True)

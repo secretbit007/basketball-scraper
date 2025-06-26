@@ -96,9 +96,14 @@ def get_boxscore(extid):
             'QT2': int(soup.find('h6', id='body_ctl00_lblSonuc_2Ceyrek').get_text(strip=True).split('-')[0].strip()),
             'QT3': int(soup.find('h6', id='body_ctl00_lblSonuc_3Ceyrek').get_text(strip=True).split('-')[0].strip()),
             'QT4': int(soup.find('h6', id='body_ctl00_lblSonuc_4Ceyrek').get_text(strip=True).split('-')[0].strip()),
-            'extra': 0,
-            'final': int(soup.find('span', id='body_ctl00_lblTakimA_Sayi2').get_text())
+            'extra': 0
         }
+
+        try:
+            info['homeScores']['final'] = int(soup.find('span', id='body_ctl00_lblTakimA_Sayi2').get_text())
+        except:
+            info['homeScores']['final'] = int(soup.find('span', id='body_ctl00_lblTakimA_Sayi').get_text())
+
         info['homeScores']['extra'] = info['homeScores']['final'] - info['homeScores']['QT1'] - info['homeScores']['QT2'] - info['homeScores']['QT3'] - info['homeScores']['QT4']
 
         info['visitorScores'] = {
@@ -106,9 +111,14 @@ def get_boxscore(extid):
             'QT2': int(soup.find('h6', id='body_ctl00_lblSonuc_2Ceyrek').get_text(strip=True).split('-')[1].strip()),
             'QT3': int(soup.find('h6', id='body_ctl00_lblSonuc_3Ceyrek').get_text(strip=True).split('-')[1].strip()),
             'QT4': int(soup.find('h6', id='body_ctl00_lblSonuc_4Ceyrek').get_text(strip=True).split('-')[1].strip()),
-            'extra': 0,
-            'final': int(soup.find('span', id='body_ctl00_lblTakimB_Sayi2').get_text())
+            'extra': 0
         }
+
+        try:
+            info['visitorScores']['final'] = int(soup.find('span', id='body_ctl00_lblTakimB_Sayi2').get_text())
+        except:
+            info['visitorScores']['final'] = int(soup.find('span', id='body_ctl00_lblTakimB_Sayi').get_text())
+
         info['visitorScores']['extra'] = info['visitorScores']['final'] - info['visitorScores']['QT1'] - info['visitorScores']['QT2'] - info['visitorScores']['QT3'] - info['visitorScores']['QT4']
 
 
@@ -221,7 +231,7 @@ def get_boxscore(extid):
         info['stats'].append(stat)
 
     return info
-    
+
 def get_player(extid):
     info = {}
 
@@ -238,6 +248,11 @@ def get_player(extid):
         info['lastname'] = info['name'].split(' ')[-1]
         info['extid'] = extid
         info['source'] = url
+        info['position'] = '-'
+        info['dateOfBirth'] = '-'
+        info['placeOfBirth'] = '-'
+        info['height'] = '-'
+        info['nationality'] = '-'
 
         icons = soup.find('h4').find_all('i')
 

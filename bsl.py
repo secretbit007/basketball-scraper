@@ -241,8 +241,6 @@ def get_player(extid):
         soup = BeautifulSoup(resp.text, 'html.parser')
 
         info['name'] = soup.find('div', class_='contenedora_datos_secundarios').find('div').find('span').get_text(strip=True)
-        info['firstname'] = info['name'].split(' ')[0]
-        info['lastname'] = info['name'].split(' ')[-1]
         info['extid'] = extid
         info['source'] = url
         info['position'] = soup.find('div', class_='posicion').find('span').get_text(strip=True)
@@ -253,7 +251,7 @@ def get_player(extid):
 
     return info
 
-def func_acb(args):
+def func_bsl(args):
     if args['f'] == 'schedule':
         games = []
         schedule = get_schedule(args)

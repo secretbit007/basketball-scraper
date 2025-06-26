@@ -22,6 +22,7 @@ from ncaa import func_ncaa
 from plk import func_plk
 from rgm import func_rgm
 from acb import func_acb
+from bsl import func_bsl
 
 app = Flask(__name__)
 
@@ -77,6 +78,8 @@ def get_data():
         return func_rgm(args)
     elif args['source'] == 'ESP_ACB2425':
         return func_acb(args)
+    elif args['source'] == 'BSL2425':
+        return func_bsl(args)
 
     if args["lpar"] == 'E' or args["lpar"] == 'U':
         return func_euroleague_eurocup(args)

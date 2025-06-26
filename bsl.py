@@ -95,8 +95,6 @@ def bypass_cloudflare(driver: webdriver.Chrome, api_key: str) -> bool:
     return True
 
 def get_page_content(url: str):
-    service = Service(ChromeDriverManager().install())
-
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
@@ -105,7 +103,7 @@ def get_page_content(url: str):
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--remote-debugging-port=9222")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver = webdriver.Chrome(options=chrome_options)
 
     inject_script(driver)
 

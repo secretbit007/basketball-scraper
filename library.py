@@ -15,10 +15,6 @@ from dateutil.relativedelta import relativedelta
 from flask import Flask, request, render_template, redirect, url_for, send_from_directory
 from bs4 import BeautifulSoup, Tag
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
 
 def get_col_index(table: Tag, col: str, left: bool = True):
     thead = table.find('thead')

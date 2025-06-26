@@ -96,12 +96,10 @@ def bypass_cloudflare(driver: webdriver.Chrome, api_key: str) -> bool:
 
 def get_page_content(url: str):
     chrome_options = Options()
+    chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
-    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--disable-infobars")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
     driver = webdriver.Chrome(options=chrome_options)
 
     inject_script(driver)

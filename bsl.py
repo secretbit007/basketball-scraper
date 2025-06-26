@@ -5,7 +5,7 @@ def get_schedule():
     
     url = 'https://www.tbf.org.tr/ligler/bsl-2024-2025/maclar'
 
-    payload = { 'api_key': '278bc5779b22e47b610081448578c158', 'url': url }
+    payload = { 'api_key': '9ee1b2d36d44ac8467a2e084f0ffee0b', 'url': url }
     resp = requests.get('https://api.scraperapi.com/', params=payload)
 
     if resp.status_code == 200:
@@ -58,7 +58,7 @@ def get_boxscore(extid):
     info = {}
     url = f'https://www.tbf.org.tr/ligler/bsl-2024-2025/mac-detay/{extid}/istatistik'
 
-    payload = { 'api_key': '278bc5779b22e47b610081448578c158', 'url': url }
+    payload = { 'api_key': '9ee1b2d36d44ac8467a2e084f0ffee0b', 'url': url }
     resp = requests.get('https://api.scraperapi.com/', params=payload)
     
     if resp.status_code == 200:
@@ -227,7 +227,7 @@ def get_player(extid):
 
     url = f'https://www.tbf.org.tr/ligler/bsl-2024-2025/basketbolcu-detay/{extid}'
 
-    payload = { 'api_key': '278bc5779b22e47b610081448578c158', 'url': url }
+    payload = { 'api_key': '9ee1b2d36d44ac8467a2e084f0ffee0b', 'url': url }
     resp = requests.get('https://api.scraperapi.com/', params=payload)
 
     if resp.status_code == 200:

@@ -339,6 +339,8 @@ def get_player(extid):
     soup = BeautifulSoup(page_content, 'html.parser')
 
     info['name'] = soup.find('h1').get_text()
+    info['firstname'] = info['name'].split(' ')[0]
+    info['lastname'] = info['name'].split(' ')[-1]
     info['extid'] = extid
     info['source'] = url
 

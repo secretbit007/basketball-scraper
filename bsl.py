@@ -49,7 +49,7 @@ def get_schedule(args):
                 'final': int(cells[get_col_index(table, 'Sonuç')].get_text(strip=True).split('-')[1].strip())
             }
 
-            info['competition'] = 'TBL'
+            info['competition'] = args['spar']
 
             info['extid'] = cells[get_col_index(table, 'Tarih')].get('data-link').split('/')[-1]
             info['source'] = 'https://www.tbf.org.tr' + cells[get_col_index(table, 'Tarih')].get('data-link')

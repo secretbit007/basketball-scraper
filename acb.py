@@ -239,7 +239,7 @@ def get_player(extid):
         'firstname': '-',
         'lastname': '-',
         'extid': extid,
-        'url': url,
+        'source': url,
         'position': '-',
         'dateOfBirth': '-',
         'placeOfBirth': '-',

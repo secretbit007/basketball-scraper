@@ -1,9 +1,13 @@
 from library import *
 
-def get_schedule():
+def get_schedule(args):
     games = []
     
-    url = 'https://www.tbf.org.tr/ligler/bsl-2024-2025/maclar'
+    if args['spar'] == 'TUR 1':
+        url = 'https://www.tbf.org.tr/ligler/bsl-2024-2025/maclar'
+    
+    if args['spar'] == 'TUR 2':
+        url = 'https://www.tbf.org.tr/ligler/tbl-2024-2025/maclar'
 
     payload = { 'api_key': '9ee1b2d36d44ac8467a2e084f0ffee0b', 'url': url }
     resp = requests.get('https://api.scraperapi.com/', params=payload)
@@ -54,9 +58,16 @@ def get_schedule():
             
     return games
 
-def get_boxscore(extid):
+def get_boxscore(args):
+    extid = args['extid']
+
     info = {}
-    url = f'https://www.tbf.org.tr/ligler/bsl-2024-2025/mac-detay/{extid}/istatistik'
+
+    if args['spar'] == 'TUR 1':
+        url = f'https://www.tbf.org.tr/ligler/bsl-2024-2025/mac-detay/{extid}/istatistik'
+
+    if args['spar'] == 'TUR 2':
+        url = f'https://www.tbf.org.tr/ligler/tbl-2024-2025/mac-detay/{extid}/istatistik'
 
     payload = { 'api_key': '9ee1b2d36d44ac8467a2e084f0ffee0b', 'url': url }
     resp = requests.get('https://api.scraperapi.com/', params=payload)
@@ -232,10 +243,16 @@ def get_boxscore(extid):
 
     return info
 
-def get_player(extid):
+def get_player(args):
+    extid = args['extid']
+
     info = {}
 
-    url = f'https://www.tbf.org.tr/ligler/bsl-2024-2025/basketbolcu-detay/{extid}'
+    if args['spar'] == 'TUR 1':
+        url = f'https://www.tbf.org.tr/ligler/bsl-2024-2025/basketbolcu-detay/{extid}'
+    
+    if args['spar'] == 'TUR 2':
+        url = f'https://www.tbf.org.tr/ligler/tbl-2024-2025/basketbolcu-detay/{extid}'
 
     payload = { 'api_key': '9ee1b2d36d44ac8467a2e084f0ffee0b', 'url': url }
     resp = requests.get('https://api.scraperapi.com/', params=payload)
@@ -271,12 +288,12 @@ def get_player(extid):
 def func_bsl(args):
     if args['f'] == 'schedule':
         games = []
-        schedule = get_schedule()
+        schedule = get_schedule(args)
         games.extend(schedule)
         
         return json.dumps(games, indent=4)
     elif args['f'] == 'game':
-        return get_boxscore(args['extid'])
+        return get_boxscore(args)
     elif args['f'] == 'player':
-        return get_player(args['extid'])
+        return get_player(args)
     
